@@ -9,5 +9,6 @@ WARNING: This is just a quick proof of concept that places only roads in an empt
 3. Create a New World in CDDA. All its content will be removed.
 4. Set `CDDA_FOLDER` and `SAVEGAME` in `generate_cdda_map.py` and run.
 
-Reddit post with a bit more (not much) info:
-<https://www.reddit.com/r/cataclysmdda/comments/mvij7b>
+Discussion forum posts:
+- Reddit: <https://www.reddit.com/r/cataclysmdda/comments/mvij7b>
+- Discourse: <https://discourse.cataclysmdda.org/t/26238>
