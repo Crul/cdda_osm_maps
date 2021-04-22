@@ -17,6 +17,7 @@ METERS_PER_LON_DEG_FN = lambda lat: 40075000 * math.cos(math.radians(lat)) / 360
 
 DEFAULT_ROAD_TYPE_WIDTH = int( 8 * PIXELS_PER_METER)
 ROAD_TYPE_WIDTHS = {
+    # https://wiki.openstreetmap.org/wiki/Key:highway
     'motorway':      int(12 * PIXELS_PER_METER),
     'motorway_link': int(10 * PIXELS_PER_METER),
     'trunk':         int(10 * PIXELS_PER_METER),
@@ -119,6 +120,7 @@ def map_node(node):
         )
     )
 
+
 def get_road_type(way):
     # <way ...>
     #  <tag k='highway' v='motorway'/>
@@ -150,6 +152,7 @@ def scale_coord(scales, coords):
         int(coords[0] * scales[0]),
         int(coords[1] * scales[1])
     )
+
 
 if __name__ == '__main__':
     run()
