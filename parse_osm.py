@@ -10,6 +10,8 @@ PIXELS_PER_METER = float(1)
 
 
 OUTPUT_FILE = 'roads.png'
+PIL_IMG_FORMAT = 'RGB'
+PIL_IMG_BGR = 'white'
 
 # Length in meters of 1° of latitude = always 111.32 km
 METERS_PER_LAT_DEG = 111319
@@ -52,13 +54,34 @@ WAY_KEY = 'way'
 WAY_NODE_KEY = 'nd'
 WAY_NODE_REF_KEY = 'ref'
 TAG_KEY = 'tag'
-TAG_HIGHWAY_ATTR_KEY = 'k'
+TAG_KEY_ATTR_KEY = 'k'
+TAG_VALUE_ATTR_KEY = 'v'
 TAG_HIGHWAY_ATTR_VALUE = 'highway'
-TAG_HIGHWAY_TYPE_ATTR_KEY = 'v'
+TAG_BUILDING_ATTR_KEY = 'building'
+YES = 'yes'
 
 
 def run():
+    draw_map() \
+        .transpose(Image.ROTATE_90) \
+        .save(OUTPUT_FILE)
+
+
+def draw_map():
     root = ET.parse(OSM_FILEPATH).getroot()
+    (bounds, bound_sizes, scales) = get_map_bounds_and_scales(root)
+
+    img_size = scale_coord(scales,  bound_sizes)
+    img = Image.new(PIL_IMG_FORMAT, img_size, color = PIL_IMG_BGR)
+    draw = ImageDraw.Draw(img)
+
+    draw_map_elements(root, bounds, scales, draw)
+    root.clear()
+
+    return img
+
+
+def get_map_bounds_and_scales(root):
     # <bounds minlat='40.4352000' minlon='-3.8306000' maxlat='40.4559000' maxlon='-3.7920000'/>
     bounds = root.find(BOUNDS_KEY).attrib
     for key in bounds:
@@ -68,44 +91,24 @@ def run():
     avg_lat = (bounds[MAX_LAT_KEY] + bounds[MIN_LAT_KEY]) / 2
     meters_per_lon_deg = METERS_PER_LON_DEG_FN(avg_lat)
 
-    bound_sizes = (
-        bounds[MAX_LAT_KEY] - bounds[MIN_LAT_KEY],
-        bounds[MAX_LON_KEY] - bounds[MIN_LON_KEY]
-    )
     scales = (
         METERS_PER_LAT_DEG * PIXELS_PER_METER,
         meters_per_lon_deg * PIXELS_PER_METER
     )
-    img_size = scale_coord(scales,  bound_sizes)
-    img = Image.new('1', img_size, color = 'white')
-    draw = ImageDraw.Draw(img)
+    bound_sizes = (
+        bounds[MAX_LAT_KEY] - bounds[MIN_LAT_KEY],
+        bounds[MAX_LON_KEY] - bounds[MIN_LON_KEY]
+    )
 
+    return (bounds, bound_sizes, scales)
+
+
+def draw_map_elements(root, bounds, scales, draw):
     nodes = dict(map(map_node, root.findall(NODE_KEY)))
+    ways = root.findall(WAY_KEY)
 
-    for way in root.findall(WAY_KEY):
-        road_type = get_road_type(way)
-        if road_type is None:
-            continue
-
-        node_xys = list(map(
-            lambda node: get_node_xy(bounds, scales, nodes, node),
-            way.findall(WAY_NODE_KEY)
-        ))
-
-        if not road_type in ROAD_TYPE_WIDTHS:
-            print(f"UNKONW ROAD TYPE {road_type}")
-
-        draw.line(
-            node_xys,
-            fill='black',
-            width=ROAD_TYPE_WIDTHS[road_type]
-                if road_type in ROAD_TYPE_WIDTHS
-                else DEFAULT_ROAD_TYPE_WIDTH,
-            joint="curve"
-        )
-
-    img = img.transpose(Image.ROTATE_90)
-    img.save(OUTPUT_FILE)
+    draw_buildings(ways, nodes, bounds, scales, draw)
+    draw_roads(ways, nodes, bounds, scales, draw)
 
 
 def map_node(node):
@@ -121,18 +124,82 @@ def map_node(node):
     )
 
 
+def draw_roads(ways, nodes, bounds, scales, draw):
+    for way in ways:
+        draw_road(nodes, bounds, scales, draw, way)
+
+
+def draw_road(nodes, bounds, scales, draw, way):
+    road_type = get_road_type(way)
+    if road_type is None:
+        return
+
+    node_xys = list(map(
+        lambda node: get_node_xy(bounds, scales, nodes, node),
+        way.findall(WAY_NODE_KEY)
+    ))
+
+    if not road_type in ROAD_TYPE_WIDTHS:
+        print(f'UNKOWN ROAD TYPE {road_type}')
+
+    draw.line(
+        node_xys,
+        fill='black',
+        width=ROAD_TYPE_WIDTHS[road_type]
+            if road_type in ROAD_TYPE_WIDTHS
+            else DEFAULT_ROAD_TYPE_WIDTH,
+        joint='curve'
+    )
+
+
 def get_road_type(way):
     # <way ...>
     #  <tag k='highway' v='motorway'/>
     # </way>
     for tag in way.findall(TAG_KEY):
-        if (TAG_HIGHWAY_ATTR_KEY in tag.attrib
-            and TAG_HIGHWAY_TYPE_ATTR_KEY in tag.attrib
-            and tag.attrib[TAG_HIGHWAY_ATTR_KEY] == TAG_HIGHWAY_ATTR_VALUE
+        if (TAG_KEY_ATTR_KEY in tag.attrib
+            and TAG_VALUE_ATTR_KEY in tag.attrib
+            and tag.attrib[TAG_KEY_ATTR_KEY] == TAG_HIGHWAY_ATTR_VALUE
         ):
-            return tag.attrib[TAG_HIGHWAY_TYPE_ATTR_KEY]
+            return tag.attrib[TAG_VALUE_ATTR_KEY]
 
     return None
+
+
+def draw_buildings(ways, nodes, bounds, scales, draw):
+    for way in ways:
+        draw_building(nodes, bounds, scales, draw, way)
+
+
+def draw_building(nodes, bounds, scales, draw, way):
+    if not is_building(way):
+        return
+
+    node_xys = list(map(
+        lambda node: get_node_xy(bounds, scales, nodes, node),
+        way.findall(WAY_NODE_KEY)
+    ))
+
+    draw.polygon(
+        node_xys,
+        fill='#eeeeff22',
+        outline='blue'
+    )
+
+
+def is_building(way):
+    # <way ...>
+    #   <tag k='building' v='yes'/>
+    # </way>
+    for tag in way.findall(TAG_KEY):
+        if (TAG_KEY_ATTR_KEY in tag.attrib
+            and TAG_VALUE_ATTR_KEY in tag.attrib
+            and tag.attrib[TAG_KEY_ATTR_KEY] == TAG_BUILDING_ATTR_KEY
+            and tag.attrib[TAG_VALUE_ATTR_KEY] == YES
+        ):
+            return True
+
+    return False
 
 
 def get_node_xy(bounds, scales, nodes, node_elem):

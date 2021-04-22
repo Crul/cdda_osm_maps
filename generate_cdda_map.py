@@ -341,7 +341,7 @@ def get_sumap_terrain(
                 TILE_TYPE_ROAD
                 if (    0 <= pixel_pos[0] < roads_img.width
                     and 0 <= pixel_pos[1] < roads_img.height
-                    and roads_img.getpixel(pixel_pos) == 0
+                    and roads_img.getpixel(pixel_pos)[0] == 0
                 ) else TILE_TYPE_DEFAULT
             )
 
