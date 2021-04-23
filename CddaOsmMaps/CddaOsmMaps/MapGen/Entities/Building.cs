@@ -6,5 +6,11 @@ namespace CddaOsmMaps.MapGen.Entities
     {
         public string Type { get; private set; }
         public List<(float x, float y)> Path { get; private set; }
+
+        public Building(string type, List<(float x, float y)> path)
+        {
+            Type = type;
+            Path = path;
+        }
     }
 }

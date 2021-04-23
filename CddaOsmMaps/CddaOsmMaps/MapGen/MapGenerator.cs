@@ -21,8 +21,7 @@ namespace CddaOsmMaps.MapGen
         {
             var mapElements = MapProvider.GetMapElements();
             mapElements.Roads.ForEach(GenerateRoad);
-
-            // TODO buildings
+            mapElements.Buildings.ForEach(GenerateBuilding);
 
             if (!string.IsNullOrEmpty(imgPath))
                 Image.Save(imgPath);
@@ -47,5 +46,10 @@ namespace CddaOsmMaps.MapGen
                 Road.ROAD_COLOR,
                 MapProvider.PixelsPerMeter * road.Width
             );
+
+        private void GenerateBuilding(Building obj)
+        {
+            // TODO buildings
+        }
     }
 }
