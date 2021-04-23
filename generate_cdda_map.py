@@ -112,6 +112,7 @@ def run():
             generate_segment(
                 roads_img,
                 map_top_left_abspos,
+                map_top_left_coords,
                 map_bot_rght_coords,
                 save_path,
                 segment_x_from,
@@ -207,6 +208,7 @@ def get_player_abspos(main_save_file_data):
 def generate_segment(
     roads_img,
     map_top_left_abspos,
+    map_top_left_coords,
     map_bot_rght_coords,
     save_path,
     segment_x_from,
@@ -225,7 +227,7 @@ def generate_segment(
 
     submap_4x_file_x_from = (
         segment_x * SUBMAP_x4_PER_SEGMENT
-        if segment_x >= segment_x_from
+        if segment_x > segment_x_from
         else map_top_left_coords.submap_4x_file[0]
     )
     submap_4x_file_x_to = (
@@ -236,7 +238,7 @@ def generate_segment(
 
     submap_4x_file_y_from = (
         segment_y * SUBMAP_x4_PER_SEGMENT
-        if segment_y >= segment_y_from
+        if segment_y > segment_y_from
         else map_top_left_coords.submap_4x_file[1]
     )
     submap_4x_file_y_to = (
@@ -245,8 +247,8 @@ def generate_segment(
         else map_bot_rght_coords.submap_4x_file[1]
     )
 
-    for submap_4x_file_x in range(submap_4x_file_x_from, submap_4x_file_x_to):
-        for submap_4x_file_y in range(submap_4x_file_y_from, submap_4x_file_y_to):
+    for submap_4x_file_x in range(submap_4x_file_x_from, submap_4x_file_x_to + 1):
+        for submap_4x_file_y in range(submap_4x_file_y_from, submap_4x_file_y_to + 1):
             generate_submap_4x_file(
                 roads_img,
                 map_top_left_abspos,
@@ -473,7 +475,7 @@ def write_json(save_path, filename, data, header=None):
         if header is not None:
             json_file.write(header)
 
-        json.dump(data, json_file)
+        json.dump(data, json_file, separators=(',', ':'))
 
 
 if __name__ == '__main__':
