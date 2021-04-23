@@ -1,5 +1,4 @@
-﻿using CddaOsmMaps.MapGen.Entities;
-using System.Collections.Generic;
+﻿using CddaOsmMaps.MapGen.Dtos;
 
 namespace CddaOsmMaps.MapGen.Contracts
 {
@@ -8,6 +7,6 @@ namespace CddaOsmMaps.MapGen.Contracts
         float PixelsPerMeter { get; }
         (int width, int height) MapSize { get; }
 
-        List<Road> GetRoads();
+        MapElements GetMapElements();
     }
 }

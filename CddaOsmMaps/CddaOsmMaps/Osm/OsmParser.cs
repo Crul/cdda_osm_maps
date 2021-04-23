@@ -1,11 +1,11 @@
 ﻿using CddaOsmMaps.Crosscutting;
 using CddaOsmMaps.MapGen.Contracts;
+using CddaOsmMaps.MapGen.Dtos;
 using CddaOsmMaps.MapGen.Entities;
 using OsmSharp;
 using OsmSharp.API;
 using OsmSharp.Complete;
 using OsmSharp.Streams;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -55,7 +55,7 @@ namespace CddaOsmMaps.Osm
             MapSize = ((int)mapSize.lon, (int)mapSize.lat); // reversed lat <-> lon
         }
 
-        public List<Road> GetRoads()
+        public MapElements GetMapElements()
         {
             using var fileStream = File.OpenRead(OsmXmlFilepath);
             var source = new XmlOsmStreamSource(fileStream);
@@ -75,12 +75,20 @@ namespace CddaOsmMaps.Osm
                 .Select(way => (CompleteWay)way)
                 .ToList();
 
-            return ways
+            var roads = ways
                 .Select(way => new Road(
                     way.Tags[TAG_HIGHWAY_ATTR_VALUE],
                     way.Nodes.Select(Scale).ToList()
                 ))
                 .ToList();
+
+            var buildings = new System.Collections.Generic.List<Building>(); // TODO
+
+            return new MapElements
+            {
+                Roads = roads,
+                Buildings = buildings
+            };
         }
 
         private Bounds GetBounds()
@@ -124,6 +132,5 @@ namespace CddaOsmMaps.Osm
                 (float)(node.Latitude - Bounds.MinLatitude ?? 0),
                 (float)(node.Longitude - Bounds.MinLongitude ?? 0)
             ));
-
     }
 }

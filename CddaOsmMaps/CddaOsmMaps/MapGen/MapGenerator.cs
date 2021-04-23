@@ -19,7 +19,10 @@ namespace CddaOsmMaps.MapGen
 
         public void Generate(string imgPath = "")
         {
-            MapProvider.GetRoads().ForEach(GenerateRoad);
+            var mapElements = MapProvider.GetMapElements();
+            mapElements.Roads.ForEach(GenerateRoad);
+
+            // TODO buildings
 
             if (!string.IsNullOrEmpty(imgPath))
                 Image.Save(imgPath);
