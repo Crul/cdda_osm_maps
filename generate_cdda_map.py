@@ -72,8 +72,7 @@ TILE_TYPE_DEFAULT = 't_grass'
 
 def run():
     save_path = os.path.join(CDDA_FOLDER, CDDA_SAVE_FOLDER, SAVEGAME)
-    save_files = os.listdir(save_path)
-    save_id = get_save_id(save_files)
+    save_id = get_save_id(save_path)
     # print('save_id', save_id)
 
     main_save_file_data = \
@@ -124,7 +123,8 @@ def run():
             )
 
 
-def get_save_id(save_files):
+def get_save_id(save_path):
+    save_files = os.listdir(save_path)
     main_save_filename = [ file
         for file in save_files
         if file.endswith(MAIN_SAVE_FILE_EXT)
