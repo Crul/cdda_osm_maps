@@ -41,7 +41,9 @@ namespace CddaOsmMaps.Cdda
             new Dictionary<TerrainType, string>
             {
                 { TerrainType.Default,  "t_grass" },
-                { TerrainType.Pavement, "t_pavement" }
+                { TerrainType.Pavement, "t_pavement" },
+                { TerrainType.Wall, "t_concrete_wall" },
+                { TerrainType.HouseFloor, "t_thconc_floor" },
             };
 
         private readonly string SavePath;

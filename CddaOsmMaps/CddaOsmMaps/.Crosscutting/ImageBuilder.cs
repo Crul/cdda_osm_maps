@@ -27,9 +27,7 @@ namespace CddaOsmMaps.Crosscutting
             Paint = new SKPaint
             {
                 Color = SKColors.Black,
-                IsAntialias = false,
-                Style = SKPaintStyle.Stroke,
-                StrokeWidth = 3
+                IsAntialias = false
             };
         }
 
@@ -45,27 +43,51 @@ namespace CddaOsmMaps.Crosscutting
             DisposeBuldingProperties();
         }
 
-        public void DrawPoints(
+        public (byte r, byte g, byte b) GetPixelColor((int x, int y) pixelPos)
+        {
+            var pixelColor = Bitmap.GetPixel(pixelPos.x, pixelPos.y);
+
+            return (pixelColor.Red, pixelColor.Green, pixelColor.Blue);
+        }
+
+        public void DrawPath(
             List<(float x, float y)> points,
             (byte r, byte g, byte b) color,
             float width
         )
         {
+            Paint.Style = SKPaintStyle.Stroke;
             Paint.Color = new SKColor(color.r, color.g, color.b);
             Paint.StrokeWidth = width;
+
+            DrawPoints(points);
+        }
+
+        public void DrawArea(
+            List<(float x, float y)> points,
+            (byte r, byte g, byte b) fillColor,
+            (byte r, byte g, byte b) strokeColor,
+            float strokeWidth
+        )
+        {
+            Paint.Style = SKPaintStyle.Fill;
+            Paint.Color = new SKColor(fillColor.r, fillColor.g, fillColor.b);
+            DrawPoints(points);
+
+            Paint.Style = SKPaintStyle.Stroke;
+            Paint.Color = new SKColor(strokeColor.r, strokeColor.g, strokeColor.b);
+            Paint.StrokeWidth = strokeWidth;
+            DrawPoints(points);
+        }
+
+        private void DrawPoints(List<(float x, float y)> points)
+        {
             var path = new SKPath();
             path.MoveTo(ToSKPoint(points[0]));
             for (var i = 1; i < points.Count; i++)
                 path.LineTo(ToSKPoint(points[i]));
 
             Canvas.DrawPath(path, Paint);
-        }
-
-        public (byte r, byte g, byte b) GetPixelColor((int x, int y) pixelPos)
-        {
-            var pixelColor = Bitmap.GetPixel(pixelPos.x, pixelPos.y);
-
-            return (pixelColor.Red, pixelColor.Green, pixelColor.Blue);
         }
 
         private static SKPoint ToSKPoint((float x, float y) point)

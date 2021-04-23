@@ -3,6 +3,8 @@
     internal enum TerrainType
     {
         Default,
-        Pavement
+        Pavement,
+        Wall,
+        HouseFloor,
     }
 }

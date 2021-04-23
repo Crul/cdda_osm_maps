@@ -1,6 +1,7 @@
 ﻿using CddaOsmMaps.Crosscutting;
 using CddaOsmMaps.MapGen.Contracts;
 using CddaOsmMaps.MapGen.Entities;
+using System.Collections.Generic;
 
 namespace CddaOsmMaps.MapGen
 {
@@ -8,6 +9,14 @@ namespace CddaOsmMaps.MapGen
     {
         private readonly IMapProvider MapProvider;
         private readonly ImageBuilder Image;
+
+        private readonly Dictionary<(byte r, byte g, byte b), TerrainType> TERRAIN_TYPES_BY_COLOR =
+            new Dictionary<(byte r, byte g, byte b), TerrainType>
+            {
+                {  Road.ROAD_COLOR, TerrainType.Pavement },
+                {  Building.FLOOR_COLOR, TerrainType.HouseFloor },
+                {  Building.WALL_COLOR, TerrainType.Wall },
+            };
 
         public (int width, int height) MapSize => MapProvider.MapSize;
 
@@ -39,23 +48,25 @@ namespace CddaOsmMaps.MapGen
                 return TerrainType.Default;
 
             var pixelColor = Image.GetPixelColor(pixelPos);
-
-            if (pixelColor == Road.ROAD_COLOR)
-                return TerrainType.Pavement;
+            if (TERRAIN_TYPES_BY_COLOR.TryGetValue(pixelColor, out var terrainType))
+                return terrainType;
 
             return TerrainType.Default;
         }
 
         private void GenerateRoad(Road road)
-            => Image.DrawPoints(
+            => Image.DrawPath(
                 road.Path,
                 Road.ROAD_COLOR,
                 MapProvider.PixelsPerMeter * road.Width
             );
 
-        private void GenerateBuilding(Building obj)
-        {
-            // TODO buildings
-        }
+        private void GenerateBuilding(Building building)
+            => Image.DrawArea(
+                building.Path,
+                fillColor: Building.FLOOR_COLOR,
+                strokeColor: Building.WALL_COLOR,
+                strokeWidth: Building.WALL_WIDTH
+            );
     }
 }
