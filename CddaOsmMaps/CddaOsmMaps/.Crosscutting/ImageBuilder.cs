@@ -61,15 +61,11 @@ namespace CddaOsmMaps.Crosscutting
             Canvas.DrawPath(path, Paint);
         }
 
-        public bool IsPixelColor(
-            (int x, int y) pixelPos,
-            (byte r, byte g, byte b) color
-        )
+        public (byte r, byte g, byte b) GetPixelColor((int x, int y) pixelPos)
         {
             var pixelColor = Bitmap.GetPixel(pixelPos.x, pixelPos.y);
-            return pixelColor.Red == color.r
-                && pixelColor.Green == color.r
-                && pixelColor.Blue == color.b;
+
+            return (pixelColor.Red, pixelColor.Green, pixelColor.Blue);
         }
 
         private static SKPoint ToSKPoint((float x, float y) point)

@@ -1,9 +1,11 @@
-﻿namespace CddaOsmMaps.MapGen.Contracts
+﻿using CddaOsmMaps.MapGen.Entities;
+
+namespace CddaOsmMaps.MapGen.Contracts
 {
     internal interface IMapGenerator
     {
         (int width, int height) MapSize { get; }
 
-        bool IsRoad((int x, int y) pixelPos);
+        TerrainType GetTerrain((int x, int y) pixelPos);
     }
 }

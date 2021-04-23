@@ -1,5 +1,6 @@
 ﻿using CddaOsmMaps.Crosscutting;
 using CddaOsmMaps.MapGen.Contracts;
+using CddaOsmMaps.MapGen.Entities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -36,8 +37,12 @@ namespace CddaOsmMaps.Cdda
         private const int SUBMAP_x4_PER_SEGMENT = 32;
         private const int SEGMENT_SIZE = SUBMAP_x4_PER_SEGMENT * SUBMAP_x4_SIZE;
 
-        private const string TILE_TYPE_ROAD = "t_pavement";
-        private const string TILE_TYPE_DEFAULT = "t_grass";
+        private readonly Dictionary<TerrainType, string> TILE_PER_TERRAIN =
+            new Dictionary<TerrainType, string>
+            {
+                { TerrainType.Default,  "t_grass" },
+                { TerrainType.Pavement, "t_pavement" }
+            };
 
         private readonly string SavePath;
         private readonly string SaveId;
@@ -251,9 +256,7 @@ namespace CddaOsmMaps.Cdda
                         y: tileAbsPos.y - mapTopLeftAbspos.y
                     );
 
-                    var tileType = MapGen.IsRoad(pixelPos)
-                        ? TILE_TYPE_ROAD
-                        : TILE_TYPE_DEFAULT;
+                    var tileType = TILE_PER_TERRAIN[MapGen.GetTerrain(pixelPos)];
 
                     terrain.Add(tileType);
                 }

@@ -29,15 +29,21 @@ namespace CddaOsmMaps.MapGen
             Image.DisposeBuldingProperties();
         }
 
-        public bool IsRoad((int x, int y) pixelPos)
+        public TerrainType GetTerrain((int x, int y) pixelPos)
         {
             var isPixelInImg = (
                 0 <= pixelPos.x && pixelPos.x < MapSize.width
                 && 0 <= pixelPos.y && pixelPos.y < MapSize.height
             );
+            if (!isPixelInImg)
+                return TerrainType.Default;
 
-            return isPixelInImg
-                && Image.IsPixelColor(pixelPos, Road.ROAD_COLOR);
+            var pixelColor = Image.GetPixelColor(pixelPos);
+
+            if (pixelColor == Road.ROAD_COLOR)
+                return TerrainType.Pavement;
+
+            return TerrainType.Default;
         }
 
         private void GenerateRoad(Road road)
