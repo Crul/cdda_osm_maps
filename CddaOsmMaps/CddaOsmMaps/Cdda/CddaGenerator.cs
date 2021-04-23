@@ -1,4 +1,5 @@
 ﻿using CddaOsmMaps.Crosscutting;
+using CddaOsmMaps.MapGen.Contracts;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,39 +41,41 @@ namespace CddaOsmMaps.Cdda
 
         private readonly string SavePath;
         private readonly string SaveId;
+        private readonly IMapGenerator MapGen;
 
-        public CddaGenerator(string cddaFolder, string saveGame)
+        public CddaGenerator(IMapGenerator mapGen, string cddaFolder, string saveGame)
         {
+            MapGen = mapGen;
             SavePath = Path.Combine(cddaFolder, CDDA_SAVE_FOLDER, saveGame);
             SaveId = GetSaveId();
         }
 
-        public void Generate(ImageBuilder roadsImg)
+        public void Generate()
         {
             CleanMapSegmenFiles();
             CleanSeen00();
             CleanO00();
             CleanMapMemory();
             var playerAbspos = CleanMainSaveAndGetPlayerAbspos();
-            GenerateSegments(roadsImg, playerAbspos);
+            GenerateSegments(playerAbspos);
         }
 
-        private void GenerateSegments(ImageBuilder roadsImg, (int x, int y) playerAbspos)
+        private void GenerateSegments((int x, int y) playerAbspos)
         {
             static int toMapTopLeftAbspos(int playerAbspos, int imgSize)
                 => playerAbspos - (imgSize / 2);
 
             var mapTopLeftAbspos = (
-                x: toMapTopLeftAbspos(playerAbspos.x, roadsImg.Size.width),
-                y: toMapTopLeftAbspos(playerAbspos.y, roadsImg.Size.height)
+                x: toMapTopLeftAbspos(playerAbspos.x, MapGen.MapSize.width),
+                y: toMapTopLeftAbspos(playerAbspos.y, MapGen.MapSize.height)
             );
 
             static int toMapBotRghtAbspos(int mapTopLeftAbspos, int imgSize)
                 => mapTopLeftAbspos + imgSize;
 
             var mapBotRghtAbspos = (
-                x: toMapBotRghtAbspos(mapTopLeftAbspos.x, roadsImg.Size.width),
-                y: toMapBotRghtAbspos(mapTopLeftAbspos.y, roadsImg.Size.height)
+                x: toMapBotRghtAbspos(mapTopLeftAbspos.x, MapGen.MapSize.width),
+                y: toMapBotRghtAbspos(mapTopLeftAbspos.y, MapGen.MapSize.height)
             );
 
             var mapTopLeftCoords = GetCoords(mapTopLeftAbspos);
@@ -89,7 +92,6 @@ namespace CddaOsmMaps.Cdda
             foreach (var segmentX in segmentXRange)
                 foreach (var segmentY in segmentYRange)
                     GenerateSegment(
-                        roadsImg,
                         mapTopLeftAbspos,
                         mapTopLeftCoords,
                         mapBotRghtCoords,
@@ -103,7 +105,6 @@ namespace CddaOsmMaps.Cdda
         }
 
         private void GenerateSegment(
-            ImageBuilder roadsImg,
             (int x, int y) mapTopLeftAbspos,
             CddaCoords mapTopLeftCoords,
             CddaCoords mapBotRghtCoords,
@@ -149,7 +150,6 @@ namespace CddaOsmMaps.Cdda
             foreach (var submap4xFileX in submap4xFileXRange)
                 foreach (var submap4xFileY in submap4xFileYRange)
                     GenerateSubmap4xFile(
-                        roadsImg,
                         mapTopLeftAbspos,
                         segmentPath,
                         submap4xFileX,
@@ -157,8 +157,7 @@ namespace CddaOsmMaps.Cdda
                     );
         }
 
-        private static void GenerateSubmap4xFile(
-            ImageBuilder roadsImg,
+        private void GenerateSubmap4xFile(
             (int x, int y) mapTopLeftAbspos,
             string segmentPath,
             int submap4xFileX,
@@ -169,7 +168,6 @@ namespace CddaOsmMaps.Cdda
             foreach (var submapIdxX in EnumExt.Range(2))
                 foreach (var submapIdxY in EnumExt.Range(2))
                     submap4XData.Add(GetSubmap(
-                        roadsImg,
                         mapTopLeftAbspos,
                         submap4xFileX,
                         submap4xFileY,
@@ -181,8 +179,7 @@ namespace CddaOsmMaps.Cdda
             JsonIO.WriteJson(Path.Combine(segmentPath, submap4XFilename), submap4XData);
         }
 
-        private static object GetSubmap(
-            ImageBuilder roadsImg,
+        private object GetSubmap(
             (int x, int y) mapTopLeftAbspos,
             int submap4xFileX,
             int submap4xFileY,
@@ -203,7 +200,6 @@ namespace CddaOsmMaps.Cdda
             };
 
             var terrain = GetSubmapTerrain(
-                roadsImg,
                 mapTopLeftAbspos,
                 submap4xFileX,
                 submap4xFileY,
@@ -232,8 +228,7 @@ namespace CddaOsmMaps.Cdda
             return submap;
         }
 
-        private static object[] GetSubmapTerrain(
-            ImageBuilder roadsImg,
+        private object[] GetSubmapTerrain(
             (int x, int y) mapTopLeftAbspos,
             int submap4xFileX,
             int submap4xFileY,
@@ -256,15 +251,9 @@ namespace CddaOsmMaps.Cdda
                         y: tileAbsPos.y - mapTopLeftAbspos.y
                     );
 
-                    var isPixelInImg = (
-                        0 <= pixelPos.x && pixelPos.x < roadsImg.Size.width
-                        && 0 <= pixelPos.y && pixelPos.y < roadsImg.Size.height
-                    );
-                    var isRoad = (
-                        isPixelInImg
-                        && roadsImg.IsPixelColor(pixelPos, Common.ROAD_COLOR)
-                    );
-                    var tileType = isRoad ? TILE_TYPE_ROAD : TILE_TYPE_DEFAULT;
+                    var tileType = MapGen.IsRoad(pixelPos)
+                        ? TILE_TYPE_ROAD
+                        : TILE_TYPE_DEFAULT;
 
                     terrain.Add(tileType);
                 }

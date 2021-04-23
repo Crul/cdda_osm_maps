@@ -8,9 +8,9 @@ namespace CddaOsmMaps.Crosscutting
 {
     internal static class JsonIO
     {
-        private static JsonSerializerOptions jso = new JsonSerializerOptions
+        private readonly static JsonSerializerOptions jso = new JsonSerializerOptions
         {
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
         public static T ReadJson<T>(string filepath, int skipLines = 0)

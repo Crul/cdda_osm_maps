@@ -1,5 +1,5 @@
 ﻿using CddaOsmMaps.Cdda;
-using CddaOsmMaps.Crosscutting;
+using CddaOsmMaps.MapGen;
 using CddaOsmMaps.Osm;
 
 namespace CddaOsmMaps
@@ -16,25 +16,13 @@ namespace CddaOsmMaps
 
         static void Main(string[] args)
         {
-            var image = ParseOsm();
-            GenerateCdda(image);
-        }
-
-        private static ImageBuilder ParseOsm()
-        {
             var osmParser = new OsmReader(OSM_XML_FILEPATH);
-            var image = new ImageBuilder(osmParser.OutputSize);
-            osmParser.DrawWays(image);
-            image.Save(ROAD_IGM_FILEPATH);
-            image.DisposeBuldingProperties();
 
-            return image;
-        }
+            var mapGen = new MapGenerator(osmParser);
+            mapGen.Generate(imgPath: ROAD_IGM_FILEPATH);
 
-        private static void GenerateCdda(ImageBuilder image)
-        {
-            var cddaGenerator = new CddaGenerator(CDDA_FOLDER, SAVEGAME);
-            cddaGenerator.Generate(image);
+            var cddaGenerator = new CddaGenerator(mapGen, CDDA_FOLDER, SAVEGAME);
+            cddaGenerator.Generate();
         }
     }
 }
