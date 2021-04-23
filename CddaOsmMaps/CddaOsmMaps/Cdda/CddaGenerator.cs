@@ -124,21 +124,25 @@ namespace CddaOsmMaps.Cdda
 
             var submap4xFileXFrom = (segmentX > segmentXFrom)
                 ? segmentX * SUBMAP_x4_PER_SEGMENT
-                : mapTopLeftCoords.Submap4xFile.X;
+                : mapTopLeftCoords.Submap4xFile.X
+                    + (mapTopLeftCoords.SubmapRelPos.X == 0 ? 0 : 1);
 
             var submap4xFileXTo = (segmentX < segmentXTo)
                 ? (segmentX + 1) * SUBMAP_x4_PER_SEGMENT
-                : mapBotRghtCoords.Submap4xFile.X;
+                : mapBotRghtCoords.Submap4xFile.X
+                    - (mapTopLeftCoords.SubmapRelPos.X == SUBMAP_SIZE - 1 ? 0 : 1);
 
             var submap4xFileXRange = EnumExt.RangeCount(submap4xFileXFrom, submap4xFileXTo);
 
             var submap4xFileYFrom = (segmentY > segmentYFrom)
                 ? segmentY * SUBMAP_x4_PER_SEGMENT
-                : mapTopLeftCoords.Submap4xFile.Y;
+                : mapTopLeftCoords.Submap4xFile.Y
+                    + (mapTopLeftCoords.SubmapRelPos.Y == 0 ? 0 : 1);
 
             var submap4xFileYTo = (segmentY < segmentYTo)
                 ? (segmentY + 1) * SUBMAP_x4_PER_SEGMENT
-                : mapBotRghtCoords.Submap4xFile.Y;
+                : mapBotRghtCoords.Submap4xFile.Y
+                    - (mapTopLeftCoords.SubmapRelPos.Y == SUBMAP_SIZE - 1 ? 0 : 1);
 
             var submap4xFileYRange = EnumExt.RangeCount(submap4xFileYFrom, submap4xFileYTo);
 
