@@ -6,7 +6,6 @@ using OsmSharp;
 using OsmSharp.API;
 using OsmSharp.Complete;
 using OsmSharp.Streams;
-using OsmSharp.Streams.Complete;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,6 +26,7 @@ namespace CddaOsmMaps.Osm
         private const string MAX_LON_KEY = "maxlon";
         private const string TAG_HIGHWAY_ATTR_VALUE = "highway";
         private const string TAG_BUILDING_ATTR_KEY = "building";
+        private const string TAG_LANDUSE_ATTR_KEY = "landuse";
         private const string YES_VALUE = "yes";
 
         private readonly string OsmXmlFilepath;
@@ -66,6 +66,7 @@ namespace CddaOsmMaps.Osm
 
             return new MapElements
             {
+                LandAreas = GetAreas(source),
                 Roads = GetRoads(source),
                 Buildings = GetBuildings(source)
             };
@@ -101,8 +102,32 @@ namespace CddaOsmMaps.Osm
             return null;
         }
 
+        private List<LandArea> GetAreas(XmlOsmStreamSource source)
+            => source.Where(el =>
+                    el.Type == OsmGeoType.Node
+                    || (
+                        el.Type == OsmGeoType.Way
+                        && (el.Tags?.ContainsKey(TAG_LANDUSE_ATTR_KEY) ?? false)
+                    )
+                )
+                .ToComplete()
+                .Where(osm => osm.Type == OsmGeoType.Way)
+                .Select(way => (CompleteWay)way)
+                .Select(way => new LandArea(
+                    way.Tags[TAG_LANDUSE_ATTR_KEY],
+                    way.Nodes.Select(Scale).ToList()
+                ))
+                .ToList();
+
         private List<Road> GetRoads(XmlOsmStreamSource source)
-            => GetCompleteWaysByType(source, TAG_HIGHWAY_ATTR_VALUE)
+            => source.Where(el =>
+                    el.Type == OsmGeoType.Node
+                    || (
+                        el.Type == OsmGeoType.Way
+                        && (el.Tags?.ContainsKey(TAG_HIGHWAY_ATTR_VALUE) ?? false)
+                    )
+                )
+                .ToComplete()
                 .Where(osm => osm.Type == OsmGeoType.Way)
                 .Select(way => (CompleteWay)way)
                 .Select(way => new Road(
@@ -112,7 +137,14 @@ namespace CddaOsmMaps.Osm
                 .ToList();
 
         private List<Building> GetBuildings(XmlOsmStreamSource source)
-            => GetCompleteWaysByType(source, TAG_BUILDING_ATTR_KEY)
+            => source.Where(el =>
+                    el.Type == OsmGeoType.Node
+                    || (
+                        el.Type == OsmGeoType.Way
+                        && (el.Tags?.ContainsKey(TAG_BUILDING_ATTR_KEY) ?? false)
+                    )
+                )
+                .ToComplete()
                 // TODO get buildings from nodes ????
                 /*
                     <node id="1762918480" visible="true" version="2" changeset="46461390" 
@@ -153,17 +185,6 @@ namespace CddaOsmMaps.Osm
 
             return building;
         }
-
-        private static OsmCompleteStreamSource GetCompleteWaysByType(
-            XmlOsmStreamSource source, string typeKey
-        ) => source.Where(el =>
-                el.Type == OsmGeoType.Node
-                || (
-                    el.Type == OsmGeoType.Way
-                    && (el.Tags?.ContainsKey(typeKey) ?? false)
-                )
-            )
-            .ToComplete();
 
         private (float lat, float lon) Scale((float lat, float lon) coords)
             => (

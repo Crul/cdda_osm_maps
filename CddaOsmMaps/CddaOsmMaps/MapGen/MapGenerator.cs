@@ -29,6 +29,7 @@ namespace CddaOsmMaps.MapGen
         public void Generate(string imgPath = "")
         {
             var mapElements = MapProvider.GetMapElements();
+            mapElements.LandAreas.ForEach(GenerateLandArea);
             mapElements.Roads.ForEach(GenerateRoad);
             mapElements.Buildings.ForEach(GenerateBuilding);
 
@@ -53,6 +54,14 @@ namespace CddaOsmMaps.MapGen
 
             return TerrainType.Default;
         }
+
+        private void GenerateLandArea(LandArea landArea)
+            => Image.DrawArea(
+                landArea.Path,
+                landArea.Color,
+                landArea.Color,
+                0
+            );
 
         private void GenerateRoad(Road road)
             => Image.DrawPath(

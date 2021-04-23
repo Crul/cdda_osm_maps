@@ -2,18 +2,15 @@
 
 namespace CddaOsmMaps.MapGen.Entities
 {
-    internal class Road
+    internal class Road : MapElement
     {
-        public string Type { get; private set; }
-        public List<(float x, float y)> Path { get; private set; }
         public float Width { get; private set; }
 
         public static readonly (byte r, byte g, byte b) ROAD_COLOR = (0, 0, 0);
 
         public Road(string type, List<(float x, float y)> path)
+            : base(type, path)
         {
-            Type = type;
-            Path = path;
             Width = ROAD_TYPE_WIDTHS.ContainsKey(Type)
                 ? ROAD_TYPE_WIDTHS[Type]
                 : DEFAULT_ROAD_TYPE_WIDTH;
