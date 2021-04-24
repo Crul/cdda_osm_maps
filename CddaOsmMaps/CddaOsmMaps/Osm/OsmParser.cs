@@ -24,6 +24,7 @@ namespace CddaOsmMaps.Osm
         private const string MIN_LON_KEY = "minlon";
         private const string MAX_LAT_KEY = "maxlat";
         private const string MAX_LON_KEY = "maxlon";
+        private const string RELATION_OUTER_ROLE = "outer";
         private const string TAG_WATER_ATTR_KEY = "water";
         private const string TAG_WATERWAY_ATTR_KEY = "waterway";
         private const string TAG_NATURAL_ATTR_KEY = "natural";
@@ -68,7 +69,7 @@ namespace CddaOsmMaps.Osm
         public MapElements GetMapElements()
         {
             using var fileStream = File.OpenRead(OsmXmlFilepath);
-            var source = new XmlOsmStreamSource(fileStream);
+            var source = new XmlOsmStreamSource(fileStream).ToComplete().ToList();
 
             return new MapElements
             {
@@ -109,90 +110,66 @@ namespace CddaOsmMaps.Osm
             return null;
         }
 
-        private IEnumerable<LandArea> GetAreas(XmlOsmStreamSource source)
+        private IEnumerable<LandArea> GetAreas(List<ICompleteOsmGeo> source)
             => source
                 .Where(el =>
-                    el.Type == OsmGeoType.Node
-                    || (
-                        el.Type == OsmGeoType.Way
-                        && (el.Tags?.ContainsKey(TAG_LANDUSE_ATTR_KEY) ?? false)
-                    )
+                    (el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
+                    && (el.Tags?.ContainsKey(TAG_LANDUSE_ATTR_KEY) ?? false)
                 )
-                .ToComplete()
-                .Where(osm => osm.Type == OsmGeoType.Way)
-                .Select(way => (CompleteWay)way)
+                .SelectMany(GetWaysFromWayOrRelation)
                 .Select(way => new LandArea(
                     way.Tags[TAG_LANDUSE_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
                 ));
 
-        private IEnumerable<LandArea> GetWaterAreas(XmlOsmStreamSource source)
+        private IEnumerable<LandArea> GetWaterAreas(List<ICompleteOsmGeo> source)
             => source
                 .Where(el =>
-                    el.Type == OsmGeoType.Node
-                    || (
-                        el.Type == OsmGeoType.Way
-                        && (
-                            (el.Tags?.ContainsKey(TAG_WATER_ATTR_KEY) ?? false)
-                            || (
-                                (el.Tags?.ContainsKey(TAG_NATURAL_ATTR_KEY) ?? false)
-                                && TAG_WATER_ATTR_VALUES.Contains(el.Tags[TAG_NATURAL_ATTR_KEY])
-                            )
+                    (el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
+                    && (
+                        (el.Tags?.ContainsKey(TAG_WATER_ATTR_KEY) ?? false)
+                        || (
+                            (el.Tags?.ContainsKey(TAG_NATURAL_ATTR_KEY) ?? false)
+                            && TAG_WATER_ATTR_VALUES.Contains(el.Tags[TAG_NATURAL_ATTR_KEY])
                         )
                     )
                 )
-                .ToComplete()
-                .Where(osm => osm.Type == OsmGeoType.Way)
-                .Select(way => (CompleteWay)way)
+                .SelectMany(GetWaysFromWayOrRelation)
                 .Select(way => new LandArea(
                     way.Tags[TAG_NATURAL_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
                 ));
 
-        private IEnumerable<River> GetRivers(XmlOsmStreamSource source)
+        private IEnumerable<River> GetRivers(List<ICompleteOsmGeo> source)
             => source
                 .Where(el =>
-                    el.Type == OsmGeoType.Node
-                    || (
-                        el.Type == OsmGeoType.Way
-                        && (el.Tags?.ContainsKey(TAG_WATERWAY_ATTR_KEY) ?? false)
-                    )
+                    (el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
+                    && (el.Tags?.ContainsKey(TAG_WATERWAY_ATTR_KEY) ?? false)
                 )
-                .ToComplete()
-                .Where(osm => osm.Type == OsmGeoType.Way)
-                .Select(way => (CompleteWay)way)
+                .SelectMany(GetWaysFromWayOrRelation)
                 .Select(way => new River(
                     way.Tags[TAG_WATERWAY_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
                 ));
 
-        private IEnumerable<Road> GetRoads(XmlOsmStreamSource source)
+        private IEnumerable<Road> GetRoads(List<ICompleteOsmGeo> source)
             => source
                 // TODO <tag k="footway" v="sidewalk | crossing"/>
                 .Where(el =>
-                    el.Type == OsmGeoType.Node
-                    || (
-                        el.Type == OsmGeoType.Way
-                        && (el.Tags?.ContainsKey(TAG_HIGHWAY_ATTR_KEY) ?? false)
-                    )
+                    (el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
+                    && (el.Tags?.ContainsKey(TAG_HIGHWAY_ATTR_KEY) ?? false)
                 )
-                .ToComplete()
-                .Where(osm => osm.Type == OsmGeoType.Way)
-                .Select(way => (CompleteWay)way)
+                .SelectMany(GetWaysFromWayOrRelation)
                 .Select(way => new Road(
                     way.Tags[TAG_HIGHWAY_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
                 ));
 
-        private IEnumerable<Building> GetBuildings(XmlOsmStreamSource source)
+        private IEnumerable<Building> GetBuildings(List<ICompleteOsmGeo> source)
             => source.Where(el =>
-                    el.Type == OsmGeoType.Node
-                    || (
-                        el.Type == OsmGeoType.Way
-                        && (el.Tags?.ContainsKey(TAG_BUILDING_ATTR_KEY) ?? false)
-                    )
+                    (el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
+                    && (el.Tags?.ContainsKey(TAG_BUILDING_ATTR_KEY) ?? false)
                 )
-                .ToComplete()
                 // TODO get buildings from nodes ????
                 /*
                     <node id="1762918480" visible="true" version="2" changeset="46461390" 
@@ -203,8 +180,7 @@ namespace CddaOsmMaps.Osm
                       <tag k="name" v="Hielo Picado"/>
                      </node>
                 */
-                .Where(osm => osm.Type == OsmGeoType.Way)
-                .Select(way => (CompleteWay)way)
+                .SelectMany(GetWaysFromWayOrRelation)
                 .Select(GetBuilding)
                 .ToList();
 
@@ -234,6 +210,33 @@ namespace CddaOsmMaps.Osm
             return building;
         }
 
+        private IEnumerable<CompleteWay> GetWaysFromWayOrRelation(ICompleteOsmGeo osm)
+        {
+            if (osm is CompleteWay)
+                return new CompleteWay[] { (CompleteWay)osm };
+
+            var relation = (CompleteRelation)osm;
+            return relation
+                .Members
+                // TODO remove members w/Role="inner" on "multipolygon"
+                .Where(relmember => relmember.Role == RELATION_OUTER_ROLE)
+                .Select(relmember => relmember.Member)
+                .Where(member => member.Type == OsmGeoType.Way)
+                .Select(member =>
+                {
+                    var way = (CompleteWay)member;
+                    if (way.Tags == null)
+                        way.Tags = relation.Tags;
+                    else
+                        relation
+                            .Tags
+                            .Where(relTag => !way.Tags.ContainsKey(relTag.Key))
+                            .ToList()
+                            .ForEach(relTag => way.Tags.Add(relTag));
+
+                    return way;
+                });
+        }
         private (float lat, float lon) Scale((float lat, float lon) coords)
             => (
                 lat: Scales.lat * coords.lat,
