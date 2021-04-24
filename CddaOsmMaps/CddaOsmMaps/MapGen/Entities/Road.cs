@@ -1,13 +1,10 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 
 namespace CddaOsmMaps.MapGen.Entities
 {
     internal class Road : MapElement
     {
         public float Width { get; private set; }
-
-        public static readonly Color ROAD_COLOR = Color.FromArgb(0, 0, 0);
 
         public Road(string type, List<(float x, float y)> path)
             : base(type, path)

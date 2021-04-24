@@ -14,9 +14,9 @@ namespace CddaOsmMaps.MapGen
         private readonly Dictionary<Color, TerrainType> TERRAIN_TYPES_BY_COLOR =
             new Dictionary<Color, TerrainType>
             {
-                {  Road.ROAD_COLOR, TerrainType.Pavement },
-                {  Building.FLOOR_COLOR, TerrainType.HouseFloor },
-                {  Building.WALL_COLOR, TerrainType.Wall },
+                {  MapColors.ROAD_COLOR,  TerrainType.Pavement },
+                {  MapColors.FLOOR_COLOR, TerrainType.HouseFloor },
+                {  MapColors.WALL_COLOR,  TerrainType.Wall },
             };
 
         public (int width, int height) MapSize => MapProvider.MapSize;
@@ -67,15 +67,15 @@ namespace CddaOsmMaps.MapGen
         private void GenerateRoad(Road road)
             => Image.DrawPath(
                 road.Path,
-                Road.ROAD_COLOR,
+                MapColors.ROAD_COLOR,
                 MapProvider.PixelsPerMeter * road.Width
             );
 
         private void GenerateBuilding(Building building)
             => Image.DrawArea(
                 building.Path,
-                fillColor: Building.FLOOR_COLOR,
-                strokeColor: Building.WALL_COLOR,
+                fillColor: MapColors.FLOOR_COLOR,
+                strokeColor: MapColors.WALL_COLOR,
                 strokeWidth: Building.WALL_WIDTH
             );
     }
