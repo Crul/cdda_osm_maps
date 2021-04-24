@@ -43,7 +43,7 @@ namespace CddaOsmMaps.Cdda
                 { TerrainType.Default,       "t_grass" },
                 { TerrainType.Pavement,      "t_pavement" },
                 { TerrainType.ConcreteFloor, "t_concrete" },
-                { TerrainType.DirtFloor,     "t_dirtfloor" },
+                { TerrainType.DirtFloor,     "t_dirt" },
                 { TerrainType.Wall,          "t_concrete_wall" },
                 { TerrainType.HouseFloor,    "t_thconc_floor" },
                 { TerrainType.Grass,         "t_grass" },
