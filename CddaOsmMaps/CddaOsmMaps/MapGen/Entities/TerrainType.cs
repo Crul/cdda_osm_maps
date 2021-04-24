@@ -9,7 +9,7 @@
         ConcreteFloor,
         DirtFloor,
         Grass,
-        DeadGrass,
+        GrassLong,
         Sidewalk,
     }
 }

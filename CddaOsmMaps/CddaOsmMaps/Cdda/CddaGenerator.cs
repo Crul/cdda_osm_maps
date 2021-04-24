@@ -46,8 +46,8 @@ namespace CddaOsmMaps.Cdda
                 { TerrainType.DirtFloor,     "t_dirtfloor" },
                 { TerrainType.Wall,          "t_concrete_wall" },
                 { TerrainType.HouseFloor,    "t_thconc_floor" },
-                { TerrainType.Grass,         "t_grasss" },
-                { TerrainType.DeadGrass,     "t_dead_grasss" },
+                { TerrainType.Grass,         "t_grass" },
+                { TerrainType.GrassLong,     "t_grass_long" },
                 { TerrainType.Sidewalk,      "t_sidewalk" },
             };
 

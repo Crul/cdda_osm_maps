@@ -6,7 +6,7 @@ namespace CddaOsmMaps.MapGen.Entities
     public static class MapColors
     {
         public static readonly Color GRASS_COLOR = Color.FromArgb(0, 255, 0);
-        public static readonly Color DEAD_GRASS_COLOR = Color.FromArgb(172, 172, 0);
+        public static readonly Color GRASS_LONG_COLOR = Color.FromArgb(172, 172, 0);
 
         public static readonly Color LAND_AREA_DEFAULT_COLOR = Color.FromArgb(128, 128, 128);
         public static readonly Dictionary<string, Color> LANDUSE_COLORS =
@@ -32,7 +32,7 @@ namespace CddaOsmMaps.MapGen.Entities
                 { "conservation",       LAND_AREA_DEFAULT_COLOR },
                 { "depot",              LAND_AREA_DEFAULT_COLOR },
                 { "garages",            Color.FromArgb(128,128,255) },
-                { "grass",              DEAD_GRASS_COLOR },
+                { "grass",              GRASS_LONG_COLOR },
                 { "greenfield",         GRASS_COLOR },
                 { "greenhouse_horticulture", LAND_AREA_DEFAULT_COLOR },
                 { "landfill",           LAND_AREA_DEFAULT_COLOR },

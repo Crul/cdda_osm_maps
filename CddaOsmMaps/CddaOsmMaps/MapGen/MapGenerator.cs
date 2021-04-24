@@ -23,7 +23,7 @@ namespace CddaOsmMaps.MapGen
                 {  MapColors.FLOOR_COLOR,           TerrainType.HouseFloor },
                 {  MapColors.WALL_COLOR,            TerrainType.Wall },
                 {  MapColors.GRASS_COLOR,           TerrainType.Grass },
-                {  MapColors.DEAD_GRASS_COLOR,      TerrainType.DeadGrass },
+                {  MapColors.GRASS_LONG_COLOR,      TerrainType.GrassLong },
             };
 
         public (int width, int height) MapSize => MapProvider.MapSize;
