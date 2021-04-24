@@ -15,3 +15,7 @@ Discussion forum posts:
 
 - Reddit: <https://www.reddit.com/r/cataclysmdda/comments/mvij7b>
 - Discourse: <https://discourse.cataclysmdda.org/t/26238>
+
+## Attribution
+
+This project contains a modified version of [OsmSharp](https://github.com/OsmSharp/core) ([MIT License](https://github.com/OsmSharp/core/blob/develop/LICENSE.md) - Copyright (c) 2017 Ben Abelshausen) to workaround [the problem with Complete Relations when some nodes are missing](https://github.com/OsmSharp/core/issues/63).
