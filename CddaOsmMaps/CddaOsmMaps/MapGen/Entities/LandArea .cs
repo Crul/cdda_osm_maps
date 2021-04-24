@@ -1,25 +1,26 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 
 namespace CddaOsmMaps.MapGen.Entities
 {
     internal class LandArea : MapElement
     {
-        private static readonly (byte r, byte g, byte b) DEFAULT_COLOR = (128, 128, 128);
-        private static readonly Dictionary<string, (byte r, byte g, byte b)> COLOR_BY_LANDUSE =
-            new Dictionary<string, (byte r, byte g, byte b)>
+        private readonly Color DEFAULT_COLOR = Color.FromArgb(128, 128, 128);
+        private readonly Dictionary<string, Color> COLOR_BY_LANDUSE =
+            new Dictionary<string, Color>
             {
-                 { "residential", (  0,255,255) },
-                 { "commercial",  (255,  0,255) },
-                 { "industrial",  (255,255,  0) },
-                 { "garages",     (255,128,128) },
+                 { "residential", Color.FromArgb(  0,255,255) },
+                 { "commercial",  Color.FromArgb(255,  0,255) },
+                 { "industrial",  Color.FromArgb(255,255,  0) },
+                 { "garages",     Color.FromArgb(255,128,128) },
             };
+
+        public Color FillColor { get; internal set; }
 
         public LandArea(string type, List<(float x, float y)> path)
             : base(type, path)
-            => Color = COLOR_BY_LANDUSE.ContainsKey(type)
+            => FillColor = COLOR_BY_LANDUSE.ContainsKey(type)
                 ? COLOR_BY_LANDUSE[type]
                 : DEFAULT_COLOR;
-
-        public (byte r, byte g, byte b) Color { get; internal set; }
     }
 }

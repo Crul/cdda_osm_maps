@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Drawing;
 
 namespace CddaOsmMaps.MapGen.Entities
 {
@@ -6,7 +7,7 @@ namespace CddaOsmMaps.MapGen.Entities
     {
         public float Width { get; private set; }
 
-        public static readonly (byte r, byte g, byte b) ROAD_COLOR = (0, 0, 0);
+        public static readonly Color ROAD_COLOR = Color.FromArgb(0, 0, 0);
 
         public Road(string type, List<(float x, float y)> path)
             : base(type, path)

@@ -2,6 +2,7 @@
 using CddaOsmMaps.MapGen.Contracts;
 using CddaOsmMaps.MapGen.Entities;
 using System.Collections.Generic;
+using System.Drawing;
 
 namespace CddaOsmMaps.MapGen
 {
@@ -10,8 +11,8 @@ namespace CddaOsmMaps.MapGen
         private readonly IMapProvider MapProvider;
         private readonly ImageBuilder Image;
 
-        private readonly Dictionary<(byte r, byte g, byte b), TerrainType> TERRAIN_TYPES_BY_COLOR =
-            new Dictionary<(byte r, byte g, byte b), TerrainType>
+        private readonly Dictionary<Color, TerrainType> TERRAIN_TYPES_BY_COLOR =
+            new Dictionary<Color, TerrainType>
             {
                 {  Road.ROAD_COLOR, TerrainType.Pavement },
                 {  Building.FLOOR_COLOR, TerrainType.HouseFloor },
@@ -58,8 +59,8 @@ namespace CddaOsmMaps.MapGen
         private void GenerateLandArea(LandArea landArea)
             => Image.DrawArea(
                 landArea.Path,
-                landArea.Color,
-                landArea.Color,
+                landArea.FillColor,
+                landArea.FillColor,
                 0
             );
 

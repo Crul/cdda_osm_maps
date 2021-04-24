@@ -1,6 +1,7 @@
 ﻿using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 
 namespace CddaOsmMaps.Crosscutting
@@ -43,21 +44,17 @@ namespace CddaOsmMaps.Crosscutting
             DisposeBuldingProperties();
         }
 
-        public (byte r, byte g, byte b) GetPixelColor((int x, int y) pixelPos)
-        {
-            var pixelColor = Bitmap.GetPixel(pixelPos.x, pixelPos.y);
-
-            return (pixelColor.Red, pixelColor.Green, pixelColor.Blue);
-        }
+        public Color GetPixelColor((int x, int y) pixelPos)
+            => Bitmap.GetPixel(pixelPos.x, pixelPos.y).ToColor();
 
         public void DrawPath(
             List<(float x, float y)> points,
-            (byte r, byte g, byte b) color,
+            Color color,
             float width
         )
         {
             Paint.Style = SKPaintStyle.Stroke;
-            Paint.Color = new SKColor(color.r, color.g, color.b);
+            Paint.Color = color.ToSKColor();
             Paint.StrokeWidth = width;
 
             DrawPoints(points);
@@ -65,17 +62,17 @@ namespace CddaOsmMaps.Crosscutting
 
         public void DrawArea(
             List<(float x, float y)> points,
-            (byte r, byte g, byte b) fillColor,
-            (byte r, byte g, byte b) strokeColor,
+            Color fillColor,
+            Color strokeColor,
             float strokeWidth
         )
         {
             Paint.Style = SKPaintStyle.Fill;
-            Paint.Color = new SKColor(fillColor.r, fillColor.g, fillColor.b);
+            Paint.Color = fillColor.ToSKColor();
             DrawPoints(points);
 
             Paint.Style = SKPaintStyle.Stroke;
-            Paint.Color = new SKColor(strokeColor.r, strokeColor.g, strokeColor.b);
+            Paint.Color = strokeColor.ToSKColor();
             Paint.StrokeWidth = strokeWidth;
             DrawPoints(points);
         }
