@@ -40,10 +40,14 @@ namespace CddaOsmMaps.Cdda
         private readonly Dictionary<TerrainType, string> TILE_PER_TERRAIN =
             new Dictionary<TerrainType, string>
             {
-                { TerrainType.Default,  "t_grass" },
-                { TerrainType.Pavement, "t_pavement" },
-                { TerrainType.Wall, "t_concrete_wall" },
-                { TerrainType.HouseFloor, "t_thconc_floor" },
+                { TerrainType.Default,       "t_grass" },
+                { TerrainType.Pavement,      "t_pavement" },
+                { TerrainType.ConcreteFloor, "t_concrete" },
+                { TerrainType.DirtFloor,     "t_dirtfloor" },
+                { TerrainType.Wall,          "t_concrete_wall" },
+                { TerrainType.HouseFloor,    "t_thconc_floor" },
+                { TerrainType.Grass,         "t_grasss" },
+                { TerrainType.DeadGrass,     "t_dead_grasss" },
             };
 
         private readonly string SavePath;

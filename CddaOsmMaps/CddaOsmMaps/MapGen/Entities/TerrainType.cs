@@ -6,5 +6,9 @@
         Pavement,
         Wall,
         HouseFloor,
+        ConcreteFloor,
+        DirtFloor,
+        Grass,
+        DeadGrass,
     }
 }

@@ -3,6 +3,7 @@ using CddaOsmMaps.MapGen.Contracts;
 using CddaOsmMaps.MapGen.Entities;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace CddaOsmMaps.MapGen
 {
@@ -14,9 +15,13 @@ namespace CddaOsmMaps.MapGen
         private readonly Dictionary<Color, TerrainType> TERRAIN_TYPES_BY_COLOR =
             new Dictionary<Color, TerrainType>
             {
-                {  MapColors.ROAD_COLOR,  TerrainType.Pavement },
-                {  MapColors.FLOOR_COLOR, TerrainType.HouseFloor },
-                {  MapColors.WALL_COLOR,  TerrainType.Wall },
+                {  MapColors.PAVEMENT_COLOR,        TerrainType.Pavement },
+                {  MapColors.DIRT_FLOOR_COLOR,      TerrainType.DirtFloor },
+                {  MapColors.CONCRETE_FLOOR_COLOR,  TerrainType.ConcreteFloor },
+                {  MapColors.FLOOR_COLOR,           TerrainType.HouseFloor },
+                {  MapColors.WALL_COLOR,            TerrainType.Wall },
+                {  MapColors.GRASS_COLOR,           TerrainType.Grass },
+                {  MapColors.DEAD_GRASS_COLOR,      TerrainType.DeadGrass },
             };
 
         public (int width, int height) MapSize => MapProvider.MapSize;
@@ -30,8 +35,14 @@ namespace CddaOsmMaps.MapGen
         public void Generate(string imgPath = "")
         {
             var mapElements = MapProvider.GetMapElements();
+
             mapElements.LandAreas.ForEach(GenerateLandArea);
-            mapElements.Roads.ForEach(GenerateRoad);
+
+            mapElements.Roads
+                .OrderBy(r => r.Width)
+                .ToList()
+                .ForEach(GenerateRoad);
+
             mapElements.Buildings.ForEach(GenerateBuilding);
 
             if (!string.IsNullOrEmpty(imgPath))
@@ -67,7 +78,7 @@ namespace CddaOsmMaps.MapGen
         private void GenerateRoad(Road road)
             => Image.DrawPath(
                 road.Path,
-                MapColors.ROAD_COLOR,
+                MapColors.ROAD_COLORS[road.Type],
                 MapProvider.PixelsPerMeter * road.Width
             );
 
