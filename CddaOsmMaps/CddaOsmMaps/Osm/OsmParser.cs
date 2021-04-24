@@ -43,13 +43,13 @@ namespace CddaOsmMaps.Osm
         public (int width, int height) MapSize { get; private set; }
         public float PixelsPerMeter => PIXELS_PER_METER;
 
-        public OsmReader(string osmXmlFilepath)
+        public OsmReader(string osmXmlFilepath, Bounds bounds = null)
         {
             OsmXmlFilepath = osmXmlFilepath;
 
             // OsmSharp ignores <bounds/> element
             // https://github.com/OsmSharp/core/issues/116
-            Bounds = GetBounds();
+            Bounds = bounds ?? GetBounds();
 
             var avgLat = (Bounds.MinLatitude + Bounds.MaxLatitude) / 2 ?? 0;
             var metersPerLonDegree = Gis.MetersPerLonDegree(avgLat);
@@ -69,7 +69,10 @@ namespace CddaOsmMaps.Osm
         public MapElements GetMapElements()
         {
             using var fileStream = File.OpenRead(OsmXmlFilepath);
-            var source = new XmlOsmStreamSource(fileStream).ToComplete().ToList();
+
+            var source = OsmXmlFilepath.EndsWith("pbf")
+                ? new PBFOsmStreamSource(fileStream).ToComplete().ToList()
+                : new XmlOsmStreamSource(fileStream).ToComplete().ToList();
 
             return new MapElements
             {

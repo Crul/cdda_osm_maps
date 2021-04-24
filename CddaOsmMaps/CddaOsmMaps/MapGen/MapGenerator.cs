@@ -97,7 +97,8 @@ namespace CddaOsmMaps.MapGen
 
         private static List<Road> GetRoadsByColor(List<Road> roads, Func<Color, bool> condition)
             => roads
-                .Where(road => condition(MapColors.ROAD_COLORS[road.Type]))
+                .Where(road => MapColors.ROAD_COLORS.ContainsKey(road.Type)
+                    && condition(MapColors.ROAD_COLORS[road.Type]))
                 .OrderBy(r => r.Width)
                 .ToList();
 

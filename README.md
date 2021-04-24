@@ -8,7 +8,12 @@ WARNING: This is just a quick proof of concept that places only a few elements (
 2. Create a New World in CDDA. All its content will be removed.
 3. In `CddaOsmMaps\CddaOsmMaps\Program.cs` [I know, this should be configurable with command line args]:
     - Set `CDDA_FOLDER` pointing to `cdda` folder
-    - Set `OSM_XML_FILEPATH` with the path to the OSM XML file
+    - For XML files:
+        - Set `OSM_FILEPATH` with the path to the OSM XML file
+        - Set `OSM_BOUNDS` to `null` (if the XML file contains a `<bounds/>` tag)
+    - For PBF files:
+        - Set `OSM_FILEPATH` with the path to the OSM PBF file
+        - Set `OSM_BOUNDS` with the LAT-LON bounds values (I couldn't get the bounds from the PBF file I tested)
 4. Run
 
 Discussion forum posts:
