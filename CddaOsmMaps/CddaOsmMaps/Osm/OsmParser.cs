@@ -24,7 +24,7 @@ namespace CddaOsmMaps.Osm
         private const string MIN_LON_KEY = "minlon";
         private const string MAX_LAT_KEY = "maxlat";
         private const string MAX_LON_KEY = "maxlon";
-        private const string TAG_HIGHWAY_ATTR_VALUE = "highway";
+        private const string TAG_HIGHWAY_ATTR_KEY = "highway";
         private const string TAG_BUILDING_ATTR_KEY = "building";
         private const string TAG_LANDUSE_ATTR_KEY = "landuse";
         private const string YES_VALUE = "yes";
@@ -127,14 +127,14 @@ namespace CddaOsmMaps.Osm
                     el.Type == OsmGeoType.Node
                     || (
                         el.Type == OsmGeoType.Way
-                        && (el.Tags?.ContainsKey(TAG_HIGHWAY_ATTR_VALUE) ?? false)
+                        && (el.Tags?.ContainsKey(TAG_HIGHWAY_ATTR_KEY) ?? false)
                     )
                 )
                 .ToComplete()
                 .Where(osm => osm.Type == OsmGeoType.Way)
                 .Select(way => (CompleteWay)way)
                 .Select(way => new Road(
-                    way.Tags[TAG_HIGHWAY_ATTR_VALUE],
+                    way.Tags[TAG_HIGHWAY_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
                 ))
                 .ToList();

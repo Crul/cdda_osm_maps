@@ -8,7 +8,7 @@ namespace CddaOsmMaps.MapGen.Entities
         public static readonly Color GRASS_COLOR = Color.FromArgb(0, 255, 0);
         public static readonly Color GRASS_LONG_COLOR = Color.FromArgb(172, 172, 0);
 
-        public static readonly Color LAND_AREA_DEFAULT_COLOR = Color.FromArgb(128, 128, 128);
+        public static readonly Color LAND_AREA_DEFAULT_COLOR = Color.FromArgb(178, 128, 128);
         public static readonly Dictionary<string, Color> LANDUSE_COLORS =
             new Dictionary<string, Color>
             {
@@ -50,7 +50,7 @@ namespace CddaOsmMaps.MapGen.Entities
             };
 
         public static readonly Color PAVEMENT_COLOR = Color.FromArgb(0, 0, 0);
-        public static readonly Color CONCRETE_FLOOR_COLOR = Color.FromArgb(64, 64, 0);
+        public static readonly Color CONCRETE_FLOOR_COLOR = Color.FromArgb(128, 128, 128);
         public static readonly Color DIRT_FLOOR_COLOR = Color.FromArgb(180, 130, 0);
 
         public static readonly Color SIDEWALK_COLOR = Color.FromArgb(156, 156, 156);
@@ -87,7 +87,7 @@ namespace CddaOsmMaps.MapGen.Entities
                 { "steps",          CONCRETE_FLOOR_COLOR },
                 { "path",           DIRT_FLOOR_COLOR },
                 { "cycleway",       DIRT_FLOOR_COLOR },
-                { "construction",   CONCRETE_FLOOR_COLOR },
+                { "construction",   DIRT_FLOOR_COLOR },
                 { "bus_stop",       PAVEMENT_COLOR },
                 { "crossing",       PAVEMENT_COLOR },
                 { "emergency_bay",  PAVEMENT_COLOR },
