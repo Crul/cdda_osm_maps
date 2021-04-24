@@ -16,8 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="OsmSharp" Version="6.2.0" />
     <PackageReference Include="SkiaSharp" Version="2.80.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OsmSharp\OsmSharp.csproj" />
   </ItemGroup>
 
 </Project>
