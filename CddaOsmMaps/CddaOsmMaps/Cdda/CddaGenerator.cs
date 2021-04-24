@@ -48,6 +48,7 @@ namespace CddaOsmMaps.Cdda
                 { TerrainType.HouseFloor,    "t_thconc_floor" },
                 { TerrainType.Grass,         "t_grasss" },
                 { TerrainType.DeadGrass,     "t_dead_grasss" },
+                { TerrainType.Sidewalk,      "t_sidewalk" },
             };
 
         private readonly string SavePath;

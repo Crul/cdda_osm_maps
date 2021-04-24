@@ -1,10 +1,25 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CddaOsmMaps.MapGen.Entities
 {
     internal class Road : MapElement
     {
         public float Width { get; private set; }
+        public float SidewalkWidth { get; private set; }
+        public bool HasSidewalk { get; private set; }
+
+        private const float SIDEWALK_WIDTH_FACTOR = 1.5f;
+
+        private readonly string[] ROAD_TYPES_WITH_SIDEWALK = new string[]
+        {
+            // https://wiki.openstreetmap.org/wiki/Key:highway
+            // TODO <tag k="footway" v="sidewalk"/>
+            // TODO <tag k="sidewalk" v="both | right | left | no"/>
+            "secondary", "tertiary", "residential",
+            "living_street", "road", "rest_area"
+        };
 
         public Road(string type, List<(float x, float y)> path)
             : base(type, path)
@@ -12,6 +27,10 @@ namespace CddaOsmMaps.MapGen.Entities
             Width = ROAD_TYPE_WIDTHS.ContainsKey(Type)
                 ? ROAD_TYPE_WIDTHS[Type]
                 : DEFAULT_ROAD_TYPE_WIDTH;
+
+            SidewalkWidth = Width * SIDEWALK_WIDTH_FACTOR;
+
+            HasSidewalk = ROAD_TYPES_WITH_SIDEWALK.Contains(type);
         }
 
         private const float DEFAULT_ROAD_TYPE_WIDTH = 8;
@@ -19,25 +38,25 @@ namespace CddaOsmMaps.MapGen.Entities
         private static readonly Dictionary<string, float> ROAD_TYPE_WIDTHS = new Dictionary<string, float>()
         {
             // https://wiki.openstreetmap.org/wiki/Key:highway
-            { "motorway",       12 },
-            { "motorway_link",  10 },
-            { "trunk",          10 },
-            { "trunk_link",      8 },
+            { "motorway",       14 },
+            { "motorway_link",  12 },
+            { "trunk",          12 },
+            { "trunk_link",     10 },
             { "primary",         9 },
-            { "secondary",       8 },
-            { "tertiary",        8 },
-            { "tertiary_link",   6 },
-            { "unclassified",    8 },
-            { "residential",     8 },
-            { "living_street",   8 },
-            { "service",         6 },
-            { "construction",    6 },
-            { "track",           5 },
+            { "secondary",       7 },
+            { "tertiary",        6 },
+            { "tertiary_link",   4 },
+            { "unclassified",    6 },
+            { "residential",     6 },
+            { "living_street",   6 },
+            { "service",         5 },
+            { "construction",    5 },
+            { "track",           4 },
             { "pedestrian",      4 },
             { "cycleway",        4 },
             { "path",            4 },
-            { "footway",         4 },
-            { "steps",           3 },
+            { "footway",         3 },
+            { "steps",           2 },
         };
     }
 }

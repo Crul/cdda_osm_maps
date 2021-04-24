@@ -53,6 +53,7 @@ namespace CddaOsmMaps.MapGen.Entities
         public static readonly Color CONCRETE_FLOOR_COLOR = Color.FromArgb(64, 64, 0);
         public static readonly Color DIRT_FLOOR_COLOR = Color.FromArgb(180, 130, 0);
 
+        public static readonly Color SIDEWALK_COLOR = Color.FromArgb(156, 156, 156);
         public static readonly Color ROAD_DEFAULT_COLOR = PAVEMENT_COLOR;
         public static readonly Dictionary<string, Color> ROAD_COLORS =
             new Dictionary<string, Color>
@@ -65,7 +66,9 @@ namespace CddaOsmMaps.MapGen.Entities
                 { "trunk",          PAVEMENT_COLOR },
                 { "trunk_link",     PAVEMENT_COLOR },
                 { "primary",        PAVEMENT_COLOR },
+                { "primary_link",   PAVEMENT_COLOR },
                 { "secondary",      PAVEMENT_COLOR },
+                { "secondary_link", PAVEMENT_COLOR },
                 { "tertiary",       PAVEMENT_COLOR },
                 { "tertiary_link",  PAVEMENT_COLOR },
                 { "unclassified",   DIRT_FLOOR_COLOR },

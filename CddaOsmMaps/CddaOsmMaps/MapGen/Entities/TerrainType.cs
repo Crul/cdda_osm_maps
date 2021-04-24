@@ -10,5 +10,6 @@
         DirtFloor,
         Grass,
         DeadGrass,
+        Sidewalk,
     }
 }

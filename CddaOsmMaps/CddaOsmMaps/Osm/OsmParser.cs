@@ -18,7 +18,7 @@ namespace CddaOsmMaps.Osm
         private readonly static Regex BOUNDS_TAG_REGEX =
             new Regex("<bounds (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\"/>");
 
-        private const float PIXELS_PER_METER = 1;
+        private const float PIXELS_PER_METER = 1.2f;
 
         private const string MIN_LAT_KEY = "minlat";
         private const string MIN_LON_KEY = "minlon";
@@ -103,7 +103,8 @@ namespace CddaOsmMaps.Osm
         }
 
         private List<LandArea> GetAreas(XmlOsmStreamSource source)
-            => source.Where(el =>
+            => source
+                .Where(el =>
                     el.Type == OsmGeoType.Node
                     || (
                         el.Type == OsmGeoType.Way
@@ -120,7 +121,9 @@ namespace CddaOsmMaps.Osm
                 .ToList();
 
         private List<Road> GetRoads(XmlOsmStreamSource source)
-            => source.Where(el =>
+            => source
+                // TODO <tag k="footway" v="sidewalk | crossing"/>
+                .Where(el =>
                     el.Type == OsmGeoType.Node
                     || (
                         el.Type == OsmGeoType.Way
