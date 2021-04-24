@@ -102,5 +102,10 @@ namespace CddaOsmMaps.Crosscutting
             Canvas?.Dispose();
             Paint?.Dispose();
         }
+
+        internal void DrawPath(List<(float x, float y)> path, Color dEEP_WATER_COLOR, object p)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

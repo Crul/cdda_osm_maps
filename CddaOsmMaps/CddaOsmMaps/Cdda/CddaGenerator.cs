@@ -41,6 +41,7 @@ namespace CddaOsmMaps.Cdda
             new Dictionary<TerrainType, string>
             {
                 { TerrainType.Default,       "t_grass" },
+                { TerrainType.DeepMovWater,  "t_water_moving_dp" },
                 { TerrainType.Pavement,      "t_pavement" },
                 { TerrainType.ConcreteFloor, "t_concrete" },
                 { TerrainType.DirtFloor,     "t_dirt" },

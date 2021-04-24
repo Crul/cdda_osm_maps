@@ -5,6 +5,8 @@ namespace CddaOsmMaps.MapGen.Entities
 {
     public static class MapColors
     {
+        public static readonly Color DEEP_WATER_COLOR = Color.FromArgb(128, 255, 255);
+
         public static readonly Color GRASS_COLOR = Color.FromArgb(0, 255, 0);
         public static readonly Color GRASS_LONG_COLOR = Color.FromArgb(172, 172, 0);
 
@@ -12,6 +14,13 @@ namespace CddaOsmMaps.MapGen.Entities
         public static readonly Dictionary<string, Color> LANDUSE_COLORS =
             new Dictionary<string, Color>
             {
+                // https://wiki.openstreetmap.org/wiki/Key:natural
+                { "water",              DEEP_WATER_COLOR },
+                { "wetland",            DEEP_WATER_COLOR },
+                { "glacier",            DEEP_WATER_COLOR },
+                { "bay",                DEEP_WATER_COLOR },
+                { "spring",             DEEP_WATER_COLOR },
+                { "hot_spring",         DEEP_WATER_COLOR },    
                 // https://wiki.openstreetmap.org/wiki/Key:landuse
                 { "commercial",         Color.FromArgb(  0,  0,255) },
                 { "construction",       DIRT_FLOOR_COLOR },

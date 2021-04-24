@@ -24,6 +24,12 @@ namespace CddaOsmMaps.Osm
         private const string MIN_LON_KEY = "minlon";
         private const string MAX_LAT_KEY = "maxlat";
         private const string MAX_LON_KEY = "maxlon";
+        private const string TAG_WATER_ATTR_KEY = "water";
+        private const string TAG_WATERWAY_ATTR_KEY = "waterway";
+        private const string TAG_NATURAL_ATTR_KEY = "natural";
+        // https://wiki.openstreetmap.org/wiki/Key:natural
+        private readonly string[] TAG_WATER_ATTR_VALUES = new string[]
+            { "water", "wetland", "glacier", "bay", "spring", "hot_spring" };
         private const string TAG_HIGHWAY_ATTR_KEY = "highway";
         private const string TAG_BUILDING_ATTR_KEY = "building";
         private const string TAG_LANDUSE_ATTR_KEY = "landuse";
@@ -66,9 +72,10 @@ namespace CddaOsmMaps.Osm
 
             return new MapElements
             {
-                LandAreas = GetAreas(source),
-                Roads = GetRoads(source),
-                Buildings = GetBuildings(source)
+                LandAreas = GetAreas(source).Concat(GetWaterAreas(source)).ToList(),
+                Rivers = GetRivers(source).ToList(),
+                Roads = GetRoads(source).ToList(),
+                Buildings = GetBuildings(source).ToList()
             };
         }
 
@@ -102,7 +109,7 @@ namespace CddaOsmMaps.Osm
             return null;
         }
 
-        private List<LandArea> GetAreas(XmlOsmStreamSource source)
+        private IEnumerable<LandArea> GetAreas(XmlOsmStreamSource source)
             => source
                 .Where(el =>
                     el.Type == OsmGeoType.Node
@@ -117,10 +124,49 @@ namespace CddaOsmMaps.Osm
                 .Select(way => new LandArea(
                     way.Tags[TAG_LANDUSE_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
-                ))
-                .ToList();
+                ));
 
-        private List<Road> GetRoads(XmlOsmStreamSource source)
+        private IEnumerable<LandArea> GetWaterAreas(XmlOsmStreamSource source)
+            => source
+                .Where(el =>
+                    el.Type == OsmGeoType.Node
+                    || (
+                        el.Type == OsmGeoType.Way
+                        && (
+                            (el.Tags?.ContainsKey(TAG_WATER_ATTR_KEY) ?? false)
+                            || (
+                                (el.Tags?.ContainsKey(TAG_NATURAL_ATTR_KEY) ?? false)
+                                && TAG_WATER_ATTR_VALUES.Contains(el.Tags[TAG_NATURAL_ATTR_KEY])
+                            )
+                        )
+                    )
+                )
+                .ToComplete()
+                .Where(osm => osm.Type == OsmGeoType.Way)
+                .Select(way => (CompleteWay)way)
+                .Select(way => new LandArea(
+                    way.Tags[TAG_NATURAL_ATTR_KEY],
+                    way.Nodes.Select(Scale).ToList()
+                ));
+
+        private IEnumerable<River> GetRivers(XmlOsmStreamSource source)
+            => source
+                .Where(el =>
+                    el.Type == OsmGeoType.Node
+                    || (
+                        el.Type == OsmGeoType.Way
+                        && (el.Tags?.ContainsKey(TAG_WATERWAY_ATTR_KEY) ?? false)
+                    )
+                )
+                .ToComplete()
+                .Where(osm => osm.Type == OsmGeoType.Way)
+                .Select(way => (CompleteWay)way)
+                .Select(way => new River(
+                    way.Tags[TAG_WATERWAY_ATTR_KEY],
+                    way.Nodes.Select(Scale).ToList()
+                ));
+
+        private IEnumerable<Road> GetRoads(XmlOsmStreamSource source)
             => source
                 // TODO <tag k="footway" v="sidewalk | crossing"/>
                 .Where(el =>
@@ -136,10 +182,9 @@ namespace CddaOsmMaps.Osm
                 .Select(way => new Road(
                     way.Tags[TAG_HIGHWAY_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
-                ))
-                .ToList();
+                ));
 
-        private List<Building> GetBuildings(XmlOsmStreamSource source)
+        private IEnumerable<Building> GetBuildings(XmlOsmStreamSource source)
             => source.Where(el =>
                     el.Type == OsmGeoType.Node
                     || (

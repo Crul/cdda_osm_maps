@@ -16,6 +16,7 @@ namespace CddaOsmMaps.MapGen
         private readonly Dictionary<Color, TerrainType> TERRAIN_TYPES_BY_COLOR =
             new Dictionary<Color, TerrainType>
             {
+                {  MapColors.DEEP_WATER_COLOR,      TerrainType.DeepMovWater },
                 {  MapColors.PAVEMENT_COLOR,        TerrainType.Pavement },
                 {  MapColors.SIDEWALK_COLOR,        TerrainType.Sidewalk },
                 {  MapColors.DIRT_FLOOR_COLOR,      TerrainType.DirtFloor },
@@ -39,6 +40,8 @@ namespace CddaOsmMaps.MapGen
             var mapElements = MapProvider.GetMapElements();
 
             mapElements.LandAreas.ForEach(GenerateLandArea);
+
+            mapElements.Rivers.ForEach(GenerateRiver);
 
             var dirtRoads = GetRoadsByColor(
                 mapElements.Roads,
@@ -83,6 +86,13 @@ namespace CddaOsmMaps.MapGen
                 landArea.FillColor,
                 landArea.FillColor,
                 0
+            );
+
+        private void GenerateRiver(River river)
+            => Image.DrawPath(
+                river.Path,
+                MapColors.DEEP_WATER_COLOR,
+                MapProvider.PixelsPerMeter * river.Width
             );
 
         private static List<Road> GetRoadsByColor(List<Road> roads, Func<Color, bool> condition)

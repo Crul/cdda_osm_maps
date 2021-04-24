@@ -3,6 +3,7 @@
     internal enum TerrainType
     {
         Default,
+        DeepMovWater,
         Pavement,
         Wall,
         HouseFloor,
