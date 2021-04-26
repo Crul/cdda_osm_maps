@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace CddaOsmMaps.Crosscutting
@@ -108,17 +109,20 @@ namespace CddaOsmMaps.Crosscutting
 
         private static SKPath GetPaths(List<Polygon> polygons)
         {
+            var mainPath = GetPath(polygons[0]);
             if (polygons.Count == 1)
-                return GetPath(polygons[0]);
+                return mainPath;
 
-            var mainPath = new SKPath();
-            polygons.ForEach(polygon =>
-            {
-                mainPath = mainPath.Op(
-                    GetPath(polygon),
-                    polygon.IsOuterPolygon ? SKPathOp.Union : SKPathOp.Difference
-                );
-            });
+            polygons
+                .Skip(1)
+                .ToList()
+                .ForEach(polygon =>
+                {
+                    mainPath = mainPath.Op(
+                        GetPath(polygon),
+                        polygon.IsOuterPolygon ? SKPathOp.Union : SKPathOp.Difference
+                    );
+                });
 
             return mainPath;
         }
