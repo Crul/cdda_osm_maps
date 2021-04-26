@@ -6,8 +6,8 @@ namespace CddaOsmMaps.MapGen.Entities
     {
         public string Type { get; private set; }
 
-        public TypedMapElement(string type, List<(float x, float y)> path)
-            : base(path)
+        public TypedMapElement(List<Polygon> polygons, string type)
+            : base(polygons)
             => Type = type;
     }
 }

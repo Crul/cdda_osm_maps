@@ -8,8 +8,8 @@ namespace CddaOsmMaps.MapGen.Entities
         public Color FillColor { get; private set; }
         public bool IsVisible { get; private set; }
 
-        public LandArea(string type, List<(float x, float y)> path)
-            : base(type, path)
+        public LandArea(List<Polygon> polygons, string type)
+            : base(polygons, type)
         {
             FillColor = MapColors.LANDUSE_COLORS.ContainsKey(type)
                   ? MapColors.LANDUSE_COLORS[type]

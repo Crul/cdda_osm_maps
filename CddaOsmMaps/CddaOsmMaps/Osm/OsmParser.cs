@@ -94,18 +94,16 @@ namespace CddaOsmMaps.Osm
                 )*/
                 .ToComplete()
                 .Where(el => el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
-                .SelectMany(GetWaysFromWayOrRelation)
                 .ToList();
 
             return new MapElements
             {
-                Coastlines = GetCoastlines(source).ToList(),
+                Coastlines = GetCoastlines(source),
                 LandAreas = GetAreas(source)
-                    .Concat(GetWaterAreas(source))
-                    .ToList(),
-                Rivers = GetRivers(source).ToList(),
-                Roads = GetRoads(source).ToList(),
-                Buildings = GetBuildings(source).ToList()
+                    .Concat(GetWaterAreas(source)),
+                Rivers = GetRivers(source),
+                Roads = GetRoads(source),
+                Buildings = GetBuildings(source)
             };
         }
 
@@ -139,23 +137,26 @@ namespace CddaOsmMaps.Osm
             return null;
         }
 
-        private IEnumerable<Coastline> GetCoastlines(List<CompleteWay> ways)
+        private IEnumerable<Coastline> GetCoastlines(List<ICompleteOsmGeo> ways)
             => ways.Where(way =>
                     (way.Tags?.ContainsKey(TAG_NATURAL_ATTR_KEY) ?? false)
                     && way.Tags[TAG_NATURAL_ATTR_KEY] == TAG_COASTLINE_ATTR_VALUE
                 )
-                .Select(way => way.Nodes.Select(Scale).ToList())
-                .Select(points => new Coastline(points))
+                .Select(ProcessWayOrRelation)
+                .Select(complexWay => complexWay.GetData(Scale))
+                .Select(data => new Coastline(data.polygons))
                 .ToList();
 
-        private IEnumerable<LandArea> GetAreas(List<CompleteWay> ways)
+        private IEnumerable<LandArea> GetAreas(List<ICompleteOsmGeo> ways)
             => ways.Where(way => way.Tags?.ContainsKey(TAG_LANDUSE_ATTR_KEY) ?? false)
-                .Select(way => new LandArea(
-                    way.Tags[TAG_LANDUSE_ATTR_KEY],
-                    way.Nodes.Select(Scale).ToList()
+                .Select(ProcessWayOrRelation)
+                .Select(complexWay => complexWay.GetData(Scale))
+                .Select(data => new LandArea(
+                    data.polygons,
+                    data.tags[TAG_LANDUSE_ATTR_KEY]
                 ));
 
-        private IEnumerable<LandArea> GetWaterAreas(List<CompleteWay> ways)
+        private IEnumerable<LandArea> GetWaterAreas(List<ICompleteOsmGeo> ways)
             => ways.Where(el =>
                     (el.Tags?.ContainsKey(TAG_WATER_ATTR_KEY) ?? false)
                     || (
@@ -163,27 +164,33 @@ namespace CddaOsmMaps.Osm
                         && TAG_WATER_ATTR_VALUES.Contains(el.Tags[TAG_NATURAL_ATTR_KEY])
                     )
                 )
-                .Select(way => new LandArea(
-                    way.Tags[TAG_NATURAL_ATTR_KEY],
-                    way.Nodes.Select(Scale).ToList()
+                .Select(ProcessWayOrRelation)
+                .Select(complexWay => complexWay.GetData(Scale))
+                .Select(data => new LandArea(
+                    data.polygons,
+                    data.tags[TAG_NATURAL_ATTR_KEY]
                 ));
 
-        private IEnumerable<River> GetRivers(List<CompleteWay> ways)
+        private IEnumerable<River> GetRivers(List<ICompleteOsmGeo> ways)
             => ways.Where(el => el.Tags?.ContainsKey(TAG_WATERWAY_ATTR_KEY) ?? false)
-                .Select(way => new River(
-                    way.Tags[TAG_WATERWAY_ATTR_KEY],
-                    way.Nodes.Select(Scale).ToList()
+                .Select(ProcessWayOrRelation)
+                .Select(complexWay => complexWay.GetData(Scale))
+                .Select(data => new River(
+                    data.polygons,
+                    data.tags[TAG_WATERWAY_ATTR_KEY]
                 ));
 
-        private IEnumerable<Road> GetRoads(List<CompleteWay> ways)
+        private IEnumerable<Road> GetRoads(List<ICompleteOsmGeo> ways)
             => ways.Where(el => el.Tags?.ContainsKey(TAG_HIGHWAY_ATTR_KEY) ?? false)
                 // TODO <tag k="footway" v="sidewalk | crossing"/>
-                .Select(way => new Road(
-                    way.Tags[TAG_HIGHWAY_ATTR_KEY],
-                    way.Nodes.Select(Scale).ToList()
+                .Select(ProcessWayOrRelation)
+                .Select(complexWay => complexWay.GetData(Scale))
+                .Select(data => new Road(
+                    data.polygons,
+                    data.tags[TAG_HIGHWAY_ATTR_KEY]
                 ));
 
-        private IEnumerable<Building> GetBuildings(List<CompleteWay> ways)
+        private IEnumerable<Building> GetBuildings(List<ICompleteOsmGeo> ways)
             => ways.Where(el => el.Tags?.ContainsKey(TAG_BUILDING_ATTR_KEY) ?? false)
                 // TODO get buildings from nodes ????
                 /*
@@ -195,44 +202,51 @@ namespace CddaOsmMaps.Osm
                       <tag k="name" v="Hielo Picado"/>
                      </node>
                 */
-                .Select(GetBuilding)
+                // TODO get other building types, examples:
+                // <tag k="building" v="yes"/> + <tag k="railway" v="station"/>
+                // <tag k="amenity" v="theatre"/>
+                // <tag k="amenity" v="school"/>
+                // <tag k="amenity" v="restaurant"/>
+                // <tag k="leisure" v="sports_centre"/>
+                // <tag k="cuisine" v="gallega"/>
+                // <tag k="shop" v="sports"/>
+                // <tag k="shop" v="supermarket"/>
+
+                // TODO get building name
+
+                // TODO get building:levels
+                .Select(ProcessWayOrRelation)
+                .Select(complexWay => complexWay.GetData(Scale))
+                .Select(data =>
+                {
+                    var buildingType = data.tags[TAG_BUILDING_ATTR_KEY];
+                    var building = new Building(
+                        data.polygons,
+                        buildingType == YES_VALUE ? string.Empty : buildingType
+                    );
+
+                    return building;
+                })
                 .ToList();
 
-        private Building GetBuilding(CompleteWay way)
-        {
-            var buildingType = way.Tags[TAG_BUILDING_ATTR_KEY];
+        private ComplexWay ProcessWayOrRelation(ICompleteOsmGeo osm)
+            => ProcessWayOrRelation(osm, null); // no overloading because lambda functions
 
-            // TODO get other building types, examples:
-            // <tag k="building" v="yes"/> + <tag k="railway" v="station"/>
-            // <tag k="amenity" v="theatre"/>
-            // <tag k="amenity" v="school"/>
-            // <tag k="amenity" v="restaurant"/>
-            // <tag k="leisure" v="sports_centre"/>
-            // <tag k="cuisine" v="gallega"/>
-            // <tag k="shop" v="sports"/>
-            // <tag k="shop" v="supermarket"/>
-
-            // TODO get building name
-
-            // TODO get building:levels
-
-            var building = new Building(
-                buildingType == YES_VALUE ? string.Empty : buildingType,
-                way.Nodes.Select(Scale).ToList()
-            );
-
-            return building;
-        }
-
-        private IEnumerable<CompleteWay> GetWaysFromWayOrRelation(ICompleteOsmGeo osm)
-            => GetWaysFromWayOrRelation(osm, null); // no overloading because lambda functions
-
-        private IEnumerable<CompleteWay> GetWaysFromWayOrRelation(ICompleteOsmGeo osm, IEnumerable<Tag> tags)
+        private ComplexWay ProcessWayOrRelation(ICompleteOsmGeo osm, IEnumerable<Tag> tags)
         {
             if (osm is CompleteWay)
-                return new CompleteWay[] { (CompleteWay)osm };
+            {
+                var way = (CompleteWay)osm;
+                AddTagsToWay(tags, way);
+
+                return new ComplexWay(way);
+            }
 
             var relation = (CompleteRelation)osm;
+            var allTags = relation.Tags.ToList();
+            if (tags != null)
+                allTags.AddRange(tags);
+
             var openWays = relation.Members
                 .Where(relmember => relmember.Member.Type == OsmGeoType.Way)
                 .Select(relmember => (CompleteWay)relmember.Member)
@@ -240,7 +254,7 @@ namespace CddaOsmMaps.Osm
                 .ToList();
 
             var unprocessedMembers = relation.Members.ToList();
-            var ways = new List<CompleteWay>();
+            var waysInfos = new List<CompleteWayInfo>();
             while (unprocessedMembers.Count > 0)
             {
                 var relMember = unprocessedMembers.First();
@@ -249,13 +263,10 @@ namespace CddaOsmMaps.Osm
                 {
                     case OsmGeoType.Way:
                         var way = (CompleteWay)relMember.Member;
-                        way.Tags ??= new TagsCollection();
+                        AddTagsToWay(allTags, way);
 
                         var isOuterRole = RELATION_OUTER_ROLES.Contains(relMember.Role);
                         var isInnerRole = relMember.Role == RELATION_INNER_ROLE;
-                        if (isInnerRole) // inner not supported
-                            continue;
-
                         if (!isOuterRole && !isInnerRole)
                         {
                             // https://wiki.openstreetmap.org/wiki/Types_of_relation
@@ -263,34 +274,25 @@ namespace CddaOsmMaps.Osm
                             continue;
                         }
 
-                        if (tags != null)
-                            AddTagsToWay(tags, way);
-
-                        if (relation.Tags != null)
-                            AddTagsToWay(relation.Tags, way);
-
-                        if (way.IsClosed())
-                            ways.Add(way);
-
-                        else if (TryCloseOpenWay(relMember, unprocessedMembers, openWays))
-                            ways.Add(way);
+                        if (way.IsClosed() || TryCloseOpenWay(relMember, unprocessedMembers, openWays))
+                            waysInfos.Add(new CompleteWayInfo(way, isOuterRole));
 
                         break;
 
                     case OsmGeoType.Relation:
-                        ways.AddRange(
-                            GetWaysFromWayOrRelation(
-                                relMember.Member,
-                                (tags ?? Enumerable.Empty<Tag>()).Concat(relation.Tags)
-                            )
+                        var isRelationOuterRole = RELATION_OUTER_ROLES.Contains(relMember.Role);
+                        var relationComplexWay = ProcessWayOrRelation(
+                            relMember.Member,
+                            (tags ?? Enumerable.Empty<Tag>()).Concat(relation.Tags)
                         );
+                        waysInfos.AddRange(relationComplexWay.WayInfos);
                         break;
 
                     case OsmGeoType.Node: default: break; // nodes ignored
                 }
             }
 
-            return ways;
+            return new ComplexWay(waysInfos, allTags);
         }
 
         private static bool TryCloseOpenWay(
@@ -361,10 +363,17 @@ namespace CddaOsmMaps.Osm
         }
 
         private static void AddTagsToWay(IEnumerable<Tag> tags, CompleteWay way)
-            => tags
-                .Where(tag => !way.Tags.ContainsKey(tag.Key))
-                .ToList()
-                .ForEach(tag => way.Tags.Add(tag));
+        {
+            if (tags == null)
+                return;
+
+            if (way.Tags == null)
+                way.Tags = new TagsCollection(tags);
+            else
+                foreach (var tag in tags)
+                    if (!way.Tags.ContainsKey(tag.Key))
+                        way.Tags.Add(tag);
+        }
 
         private (float lat, float lon) Scale((float lat, float lon) coords)
             => (

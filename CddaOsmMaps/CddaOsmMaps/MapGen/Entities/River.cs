@@ -5,8 +5,9 @@ namespace CddaOsmMaps.MapGen.Entities
     internal class River : TypedMapElement
     {
         public float Width { get; private set; }
-        public River(string type, List<(float x, float y)> path)
-            : base(type, path)
+
+        public River(List<Polygon> polygons, string type)
+            : base(polygons, type)
         {
             Width = RIVER_TYPE_WIDTHS.ContainsKey(Type)
                 ? RIVER_TYPE_WIDTHS[Type]

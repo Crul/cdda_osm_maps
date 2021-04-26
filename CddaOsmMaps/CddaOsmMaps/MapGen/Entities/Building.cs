@@ -6,6 +6,7 @@ namespace CddaOsmMaps.MapGen.Entities
     {
         public const float WALL_WIDTH = 1;
 
-        public Building(string type, List<(float x, float y)> path) : base(type, path) { }
+        public Building(List<Polygon> polygons, string type)
+            : base(polygons, type) { }
     }
 }

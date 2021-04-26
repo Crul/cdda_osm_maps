@@ -21,8 +21,8 @@ namespace CddaOsmMaps.MapGen.Entities
             "living_street", "road", "rest_area"
         };
 
-        public Road(string type, List<(float x, float y)> path)
-            : base(type, path)
+        public Road(List<Polygon> polygons, string type)
+            : base(polygons, type)
         {
             Width = ROAD_TYPE_WIDTHS.ContainsKey(Type)
                 ? ROAD_TYPE_WIDTHS[Type]

@@ -5,10 +5,10 @@ namespace CddaOsmMaps.MapGen.Dtos
 {
     internal class MapElements
     {
-        public List<Coastline> Coastlines { get; set; }
-        public List<LandArea> LandAreas { get; set; }
-        public List<River> Rivers { get; set; }
-        public List<Road> Roads { get; set; }
-        public List<Building> Buildings { get; set; }
+        public IEnumerable<Coastline> Coastlines { get; set; }
+        public IEnumerable<LandArea> LandAreas { get; set; }
+        public IEnumerable<River> Rivers { get; set; }
+        public IEnumerable<Road> Roads { get; set; }
+        public IEnumerable<Building> Buildings { get; set; }
     }
 }

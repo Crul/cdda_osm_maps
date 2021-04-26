@@ -1,4 +1,5 @@
-﻿using SkiaSharp;
+﻿using CddaOsmMaps.MapGen.Entities;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -68,14 +69,14 @@ namespace CddaOsmMaps.Crosscutting
             Canvas.DrawRect(point.x, point.y, 1, 1, Paint);
         }
 
-        public void DrawPath(
-            List<(float x, float y)> points,
+        public void DrawComplexPath(
+            List<Polygon> polygons,
             Color color,
             float width
-        ) => DrawPath(points, color.ToSKColor(), width);
+        ) => DrawComplexPath(polygons, color.ToSKColor(), width);
 
-        public void DrawPath(
-            List<(float x, float y)> points,
+        public void DrawComplexPath(
+            List<Polygon> polygons,
             SKColor color,
             float width
         )
@@ -84,32 +85,52 @@ namespace CddaOsmMaps.Crosscutting
             Paint.Color = color;
             Paint.StrokeWidth = width;
 
-            DrawPoints(points);
+            DrawPolygons(polygons);
         }
 
-        public void DrawArea(
-            List<(float x, float y)> points,
+        public void DrawComplexArea(
+            List<Polygon> polygons,
             Color fillColor
-        ) => DrawArea(points, fillColor.ToSKColor());
+        ) => DrawComplexArea(polygons, fillColor.ToSKColor());
 
-        public void DrawArea(
-            List<(float x, float y)> points,
+        public void DrawComplexArea(
+            List<Polygon> polygons,
             SKColor fillColor
         )
         {
             Paint.Style = SKPaintStyle.Fill;
             Paint.Color = fillColor;
-            DrawPoints(points);
+            DrawPolygons(polygons);
         }
 
-        private void DrawPoints(List<(float x, float y)> points)
+        private void DrawPolygons(List<Polygon> polygons)
+            => Canvas.DrawPath(GetPaths(polygons), Paint);
+
+        private static SKPath GetPaths(List<Polygon> polygons)
+        {
+            if (polygons.Count == 1)
+                return GetPath(polygons[0]);
+
+            var mainPath = new SKPath();
+            polygons.ForEach(polygon =>
+            {
+                mainPath = mainPath.Op(
+                    GetPath(polygon),
+                    polygon.IsOuterPolygon ? SKPathOp.Union : SKPathOp.Difference
+                );
+            });
+
+            return mainPath;
+        }
+
+        private static SKPath GetPath(Polygon polygon)
         {
             var path = new SKPath();
-            path.MoveTo(ToSKPoint(points[0]));
-            for (var i = 1; i < points.Count; i++)
-                path.LineTo(ToSKPoint(points[i]));
+            path.MoveTo(ToSKPoint(polygon[0]));
+            for (var i = 1; i < polygon.Count; i++)
+                path.LineTo(ToSKPoint(polygon[i]));
 
-            Canvas.DrawPath(path, Paint);
+            return path;
         }
 
         private static SKPoint ToSKPoint((float x, float y) point)

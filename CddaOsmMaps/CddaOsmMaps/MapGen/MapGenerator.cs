@@ -44,37 +44,33 @@ namespace CddaOsmMaps.MapGen
         public void Generate(string imgPath = "")
         {
             var mapElements = MapProvider.GetMapElements();
-
             Image = new ImageBuilder(MapProvider.MapSize, EMPTY_AREA_COLOR);
 
-            if (mapElements.Coastlines.Count > 0)
-            {
-                GenerateCoastlines(mapElements.Coastlines);
-                // Image.Save(imgPath);
-                // return;
-            }
+            var coastLines = mapElements.Coastlines.ToList();
+            if (coastLines.Count > 0)
+                GenerateCoastlines(coastLines);
 
             mapElements.LandAreas
                 .Where(la => la.IsVisible)
                 .ToList()
                 .ForEach(GenerateLandArea);
 
-            mapElements.Rivers.ForEach(GenerateRiver);
+            mapElements.Rivers.ToList().ForEach(GenerateRiver);
 
+            var roads = mapElements.Roads.ToList();
             var dirtRoads = GetRoadsByColor(
-                mapElements.Roads,
+                roads,
                 roadColor => roadColor == MapColors.DIRT_FLOOR_COLOR
             );
-
             var nonDirtRoads = GetRoadsByColor(
-                mapElements.Roads,
+                roads,
                 roadColor => roadColor != MapColors.DIRT_FLOOR_COLOR
             );
 
             GenerateRoads(dirtRoads);
             GenerateRoads(nonDirtRoads);
 
-            mapElements.Buildings.ForEach(GenerateBuilding);
+            mapElements.Buildings.ToList().ForEach(GenerateBuilding);
 
             if (!string.IsNullOrEmpty(imgPath))
                 Image.Save(imgPath);
@@ -107,10 +103,17 @@ namespace CddaOsmMaps.MapGen
         }
 
         private void GenerateCoastlineLBorder(Coastline coastline, SKColor? color = null)
-            => Image.DrawPath(coastline.Path, color ?? COASTLINE_BORDER_COLOR, Coastline.BORDER_WIDTH);
+            => Image.DrawComplexPath(
+                coastline.Polygons,
+                color ?? COASTLINE_BORDER_COLOR,
+                Coastline.BORDER_WIDTH
+            );
 
         private void GenerateCoastlineLSideIndicator(Coastline coastline)
-            => Image.DrawArea(coastline.SideIndicator, COASTLINE_WATER_SIDE_COLOR);
+            => Image.DrawComplexArea(
+                coastline.SideIndicators,
+                COASTLINE_WATER_SIDE_COLOR
+            );
 
         private void FillCoastlineDefinedWater()
         {
@@ -199,11 +202,11 @@ namespace CddaOsmMaps.MapGen
         }
 
         private void GenerateLandArea(LandArea landArea)
-            => Image.DrawArea(landArea.Path, landArea.FillColor);
+            => Image.DrawComplexArea(landArea.Polygons, landArea.FillColor);
 
         private void GenerateRiver(River river)
-            => Image.DrawPath(
-                river.Path,
+            => Image.DrawComplexPath(
+                river.Polygons,
                 MapColors.DEEP_WATER_COLOR,
                 MapProvider.PixelsPerMeter * river.Width
             );
@@ -225,23 +228,23 @@ namespace CddaOsmMaps.MapGen
         }
 
         private void GenerateRoad(Road road)
-            => Image.DrawPath(
-                road.Path,
+            => Image.DrawComplexPath(
+                road.Polygons,
                 MapColors.ROAD_COLORS[road.Type],
                 MapProvider.PixelsPerMeter * road.Width
             );
 
         private void GenerateSidewalk(Road road)
-            => Image.DrawPath(
-                road.Path,
+            => Image.DrawComplexPath(
+                road.Polygons,
                 MapColors.SIDEWALK_COLOR,
                 MapProvider.PixelsPerMeter * road.SidewalkWidth
             );
 
         private void GenerateBuilding(Building building)
         {
-            Image.DrawArea(building.Path, MapColors.FLOOR_COLOR);
-            Image.DrawPath(building.Path, MapColors.WALL_COLOR, Building.WALL_WIDTH);
+            Image.DrawComplexArea(building.Polygons, MapColors.FLOOR_COLOR);
+            Image.DrawComplexPath(building.Polygons, MapColors.WALL_COLOR, Building.WALL_WIDTH);
         }
     }
 }
