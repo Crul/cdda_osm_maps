@@ -99,8 +99,8 @@ namespace CddaOsmMaps.Osm
             return new MapElements
             {
                 Coastlines = GetCoastlines(source),
-                LandAreas = GetAreas(source)
-                    .Concat(GetWaterAreas(source)),
+                LandAreas = GetWaterAreas(source) // water first 
+                    .Concat(GetAreas(source)),    // to prioritize land
                 Rivers = GetRivers(source),
                 Roads = GetRoads(source),
                 Buildings = GetBuildings(source)
