@@ -6,6 +6,7 @@ using OsmSharp;
 using OsmSharp.API;
 using OsmSharp.Complete;
 using OsmSharp.Streams;
+using OsmSharp.Tags;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +17,7 @@ namespace CddaOsmMaps.Osm
 {
     internal class OsmReader : IMapProvider
     {
+        private const bool LOG = false;
         private readonly static Regex BOUNDS_TAG_REGEX =
             new Regex("<bounds (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\"/>");
 
@@ -26,6 +28,12 @@ namespace CddaOsmMaps.Osm
         private const string MAX_LAT_KEY = "maxlat";
         private const string MAX_LON_KEY = "maxlon";
         private const string RELATION_OUTER_ROLE = "outer";
+        private static readonly string[] RELATION_OUTER_ROLES = new string[]
+        {
+            string.Empty, RELATION_OUTER_ROLE, "main_stream", "side_stream", "spring", "tributary"
+            // "riverbank", "waterbody"
+        };
+        private const string RELATION_INNER_ROLE = "inner";
         private const string TAG_WATER_ATTR_KEY = "water";
         private const string TAG_WATERWAY_ATTR_KEY = "waterway";
         private const string TAG_NATURAL_ATTR_KEY = "natural";
@@ -85,6 +93,8 @@ namespace CddaOsmMaps.Osm
                     completeWays: true
                 )*/
                 .ToComplete()
+                .Where(el => el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
+                .SelectMany(GetWaysFromWayOrRelation)
                 .ToList();
 
             return new MapElements
@@ -129,75 +139,52 @@ namespace CddaOsmMaps.Osm
             return null;
         }
 
-        private IEnumerable<Coastline> GetCoastlines(List<ICompleteOsmGeo> source)
-            => source
-                .Where(osm => (osm.Tags?.ContainsKey(TAG_NATURAL_ATTR_KEY) ?? false)
-                    && osm.Tags[TAG_NATURAL_ATTR_KEY] == TAG_COASTLINE_ATTR_VALUE)
-                .SelectMany(GetWaysFromWayOrRelation)
+        private IEnumerable<Coastline> GetCoastlines(List<CompleteWay> ways)
+            => ways.Where(way =>
+                    (way.Tags?.ContainsKey(TAG_NATURAL_ATTR_KEY) ?? false)
+                    && way.Tags[TAG_NATURAL_ATTR_KEY] == TAG_COASTLINE_ATTR_VALUE
+                )
                 .Select(way => way.Nodes.Select(Scale).ToList())
                 .Select(points => new Coastline(points))
                 .ToList();
 
-        private IEnumerable<LandArea> GetAreas(List<ICompleteOsmGeo> source)
-            => source
-                .Where(el =>
-                    (el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
-                    && (el.Tags?.ContainsKey(TAG_LANDUSE_ATTR_KEY) ?? false)
-                )
-                .SelectMany(GetWaysFromWayOrRelation)
+        private IEnumerable<LandArea> GetAreas(List<CompleteWay> ways)
+            => ways.Where(way => way.Tags?.ContainsKey(TAG_LANDUSE_ATTR_KEY) ?? false)
                 .Select(way => new LandArea(
                     way.Tags[TAG_LANDUSE_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
                 ));
 
-        private IEnumerable<LandArea> GetWaterAreas(List<ICompleteOsmGeo> source)
-            => source
-                .Where(el =>
-                    (el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
-                    && (
-                        (el.Tags?.ContainsKey(TAG_WATER_ATTR_KEY) ?? false)
-                        || (
-                            (el.Tags?.ContainsKey(TAG_NATURAL_ATTR_KEY) ?? false)
-                            && TAG_WATER_ATTR_VALUES.Contains(el.Tags[TAG_NATURAL_ATTR_KEY])
-                        )
+        private IEnumerable<LandArea> GetWaterAreas(List<CompleteWay> ways)
+            => ways.Where(el =>
+                    (el.Tags?.ContainsKey(TAG_WATER_ATTR_KEY) ?? false)
+                    || (
+                        (el.Tags?.ContainsKey(TAG_NATURAL_ATTR_KEY) ?? false)
+                        && TAG_WATER_ATTR_VALUES.Contains(el.Tags[TAG_NATURAL_ATTR_KEY])
                     )
                 )
-                .SelectMany(GetWaysFromWayOrRelation)
                 .Select(way => new LandArea(
                     way.Tags[TAG_NATURAL_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
                 ));
 
-        private IEnumerable<River> GetRivers(List<ICompleteOsmGeo> source)
-            => source
-                .Where(el =>
-                    (el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
-                    && (el.Tags?.ContainsKey(TAG_WATERWAY_ATTR_KEY) ?? false)
-                )
-                .SelectMany(GetWaysFromWayOrRelation)
+        private IEnumerable<River> GetRivers(List<CompleteWay> ways)
+            => ways.Where(el => el.Tags?.ContainsKey(TAG_WATERWAY_ATTR_KEY) ?? false)
                 .Select(way => new River(
                     way.Tags[TAG_WATERWAY_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
                 ));
 
-        private IEnumerable<Road> GetRoads(List<ICompleteOsmGeo> source)
-            => source
+        private IEnumerable<Road> GetRoads(List<CompleteWay> ways)
+            => ways.Where(el => el.Tags?.ContainsKey(TAG_HIGHWAY_ATTR_KEY) ?? false)
                 // TODO <tag k="footway" v="sidewalk | crossing"/>
-                .Where(el =>
-                    (el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
-                    && (el.Tags?.ContainsKey(TAG_HIGHWAY_ATTR_KEY) ?? false)
-                )
-                .SelectMany(GetWaysFromWayOrRelation)
                 .Select(way => new Road(
                     way.Tags[TAG_HIGHWAY_ATTR_KEY],
                     way.Nodes.Select(Scale).ToList()
                 ));
 
-        private IEnumerable<Building> GetBuildings(List<ICompleteOsmGeo> source)
-            => source.Where(el =>
-                    (el.Type == OsmGeoType.Way || el.Type == OsmGeoType.Relation)
-                    && (el.Tags?.ContainsKey(TAG_BUILDING_ATTR_KEY) ?? false)
-                )
+        private IEnumerable<Building> GetBuildings(List<CompleteWay> ways)
+            => ways.Where(el => el.Tags?.ContainsKey(TAG_BUILDING_ATTR_KEY) ?? false)
                 // TODO get buildings from nodes ????
                 /*
                     <node id="1762918480" visible="true" version="2" changeset="46461390" 
@@ -208,7 +195,6 @@ namespace CddaOsmMaps.Osm
                       <tag k="name" v="Hielo Picado"/>
                      </node>
                 */
-                .SelectMany(GetWaysFromWayOrRelation)
                 .Select(GetBuilding)
                 .ToList();
 
@@ -239,32 +225,146 @@ namespace CddaOsmMaps.Osm
         }
 
         private IEnumerable<CompleteWay> GetWaysFromWayOrRelation(ICompleteOsmGeo osm)
+            => GetWaysFromWayOrRelation(osm, null); // no overloading because lambda functions
+
+        private IEnumerable<CompleteWay> GetWaysFromWayOrRelation(ICompleteOsmGeo osm, IEnumerable<Tag> tags)
         {
             if (osm is CompleteWay)
                 return new CompleteWay[] { (CompleteWay)osm };
 
             var relation = (CompleteRelation)osm;
-            return relation
-                .Members
-                // TODO remove members w/Role="inner" on "multipolygon"
-                .Where(relmember => relmember.Role == RELATION_OUTER_ROLE)
-                .Select(relmember => relmember.Member)
-                .Where(member => member.Type == OsmGeoType.Way)
-                .Select(member =>
-                {
-                    var way = (CompleteWay)member;
-                    if (way.Tags == null)
-                        way.Tags = relation.Tags;
-                    else
-                        relation
-                            .Tags
-                            .Where(relTag => !way.Tags.ContainsKey(relTag.Key))
-                            .ToList()
-                            .ForEach(relTag => way.Tags.Add(relTag));
+            var openWays = relation.Members
+                .Where(relmember => relmember.Member.Type == OsmGeoType.Way)
+                .Select(relmember => (CompleteWay)relmember.Member)
+                .Where(way => !way.IsClosed())
+                .ToList();
 
-                    return way;
-                });
+            var unprocessedMembers = relation.Members.ToList();
+            var ways = new List<CompleteWay>();
+            while (unprocessedMembers.Count > 0)
+            {
+                var relMember = unprocessedMembers.First();
+                unprocessedMembers.Remove(relMember);
+                switch (relMember.Member.Type)
+                {
+                    case OsmGeoType.Way:
+                        var way = (CompleteWay)relMember.Member;
+                        way.Tags ??= new TagsCollection();
+
+                        var isOuterRole = RELATION_OUTER_ROLES.Contains(relMember.Role);
+                        var isInnerRole = relMember.Role == RELATION_INNER_ROLE;
+                        if (isInnerRole) // inner not supported
+                            continue;
+
+                        if (!isOuterRole && !isInnerRole)
+                        {
+                            // https://wiki.openstreetmap.org/wiki/Types_of_relation
+                            if (LOG) Console.WriteLine($"WARNING: Unhandled relation role: {relMember.Role}");
+                            continue;
+                        }
+
+                        if (tags != null)
+                            AddTagsToWay(tags, way);
+
+                        if (relation.Tags != null)
+                            AddTagsToWay(relation.Tags, way);
+
+                        if (way.IsClosed())
+                            ways.Add(way);
+
+                        else if (TryCloseOpenWay(relMember, unprocessedMembers, openWays))
+                            ways.Add(way);
+
+                        break;
+
+                    case OsmGeoType.Relation:
+                        ways.AddRange(
+                            GetWaysFromWayOrRelation(
+                                relMember.Member,
+                                (tags ?? Enumerable.Empty<Tag>()).Concat(relation.Tags)
+                            )
+                        );
+                        break;
+
+                    case OsmGeoType.Node: default: break; // nodes ignored
+                }
+            }
+
+            return ways;
         }
+
+        private static bool TryCloseOpenWay(
+            CompleteRelationMember openWayRelMember,
+            List<CompleteRelationMember> unprocessedMembers,
+            List<CompleteWay> openWays
+        )
+        {
+            var way = (CompleteWay)openWayRelMember.Member;
+            openWays.Remove(way);
+
+            var merginWayNodes = way.Nodes.ToList();
+            while (true)
+            {
+                var firstNode = merginWayNodes.First();
+                var lastNode = merginWayNodes.Last();
+                if (firstNode == lastNode)
+                {
+                    way.Nodes = merginWayNodes.Skip(1).ToArray();
+                    return true;
+                }
+
+                var adjacentWays = openWays
+                    .Where(orw =>
+                        orw.Nodes.First() == lastNode
+                        || orw.Nodes.Last() == firstNode
+                        || orw.Nodes.First() == firstNode
+                        || orw.Nodes.Last() == lastNode
+                    )
+                    .ToList();
+
+                // whe 3 open ways form a closed one, the first one will find 2 adjacen ways
+                var adjacentWay = adjacentWays.FirstOrDefault();
+
+                if (adjacentWay == null)
+                {
+                    if (LOG)
+                    {
+                        Console.WriteLine($"WARNING: not fully closed way [Id: {way.Id}].");
+                        // Console.WriteLine(string.Join(",", way.Tags.Select(t => $"{t.Key}={t.Value}")));
+                        // Console.WriteLine(JsonSerializer.Serialize(way));
+                    }
+                    return false;
+                }
+
+                if (lastNode == adjacentWay.Nodes.First())
+                    merginWayNodes.AddRange(adjacentWay.Nodes.Skip(1));
+
+                else if (firstNode == adjacentWay.Nodes.Last())
+                    merginWayNodes = adjacentWay.Nodes
+                        .Concat(merginWayNodes.Skip(1))
+                        .ToList();
+
+                else if (lastNode == adjacentWay.Nodes.Last())
+                    merginWayNodes.AddRange(adjacentWay.Nodes.Reverse().Skip(1));
+
+                else if (firstNode == adjacentWay.Nodes.First())
+                    merginWayNodes = adjacentWay.Nodes
+                        .Reverse()
+                        .Concat(merginWayNodes.Skip(1))
+                        .ToList();
+
+                openWays.Remove(adjacentWay);
+                unprocessedMembers.Remove(
+                    unprocessedMembers.Single(um => um.Member == adjacentWay)
+                );
+            }
+        }
+
+        private static void AddTagsToWay(IEnumerable<Tag> tags, CompleteWay way)
+            => tags
+                .Where(tag => !way.Tags.ContainsKey(tag.Key))
+                .ToList()
+                .ForEach(tag => way.Tags.Add(tag));
 
         private (float lat, float lon) Scale((float lat, float lon) coords)
             => (
