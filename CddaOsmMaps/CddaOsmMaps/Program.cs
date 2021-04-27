@@ -26,7 +26,11 @@ namespace CddaOsmMaps
 
         static void Main(string[] args)
         {
-            var osmParser = new OsmReader(OSM_FILEPATH, OSM_BOUNDS);
+            float? pixelsPerMeter = null;
+            if (args.Length > 0)
+                pixelsPerMeter = float.Parse(args[0].Replace(".", ","));
+
+            var osmParser = new OsmReader(OSM_FILEPATH, OSM_BOUNDS, pixelsPerMeter);
             var mapGen = new MapGenerator(osmParser);
             mapGen.Generate(imgPath: ROAD_IGM_FILEPATH);
 
