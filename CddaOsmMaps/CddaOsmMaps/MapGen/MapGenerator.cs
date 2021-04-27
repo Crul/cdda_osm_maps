@@ -74,6 +74,8 @@ namespace CddaOsmMaps.MapGen
 
             if (!string.IsNullOrEmpty(imgPath))
                 Image.Save(imgPath);
+            else
+                Image.CacheBitmap();
 
             Image.DisposeBuldingProperties();
         }
