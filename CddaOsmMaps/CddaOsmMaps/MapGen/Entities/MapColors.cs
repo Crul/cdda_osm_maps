@@ -5,6 +5,8 @@ namespace CddaOsmMaps.MapGen.Entities
 {
     public static class MapColors
     {
+        public static readonly Color INVISIBLE = Color.FromArgb(128, 128, 128);
+
         public static readonly Color DEEP_WATER_COLOR = Color.FromArgb(128, 255, 255);
 
         public static readonly Color GRASS_COLOR = Color.FromArgb(0, 255, 0);
@@ -30,39 +32,39 @@ namespace CddaOsmMaps.MapGen.Entities
                 { "allotments",         DIRT_FLOOR_COLOR },  // agriculture
                 { "farmland",           DIRT_FLOOR_COLOR },
                 { "farmyard",           DIRT_FLOOR_COLOR },
-                { "flowerbed",          LAND_AREA_DEFAULT_COLOR },
+                { "flowerbed",          GRASS_LONG_COLOR }, // TODO flowers
                 { "forest",             Color.FromArgb(  0, 128,  0) },
-                { "meadow",             LAND_AREA_DEFAULT_COLOR },
-                { "orchard",            LAND_AREA_DEFAULT_COLOR },
-                { "vineyard",           LAND_AREA_DEFAULT_COLOR },
-                { "basin",              LAND_AREA_DEFAULT_COLOR },
+                { "meadow",             INVISIBLE },
+                { "orchard",            INVISIBLE },
+                { "vineyard",           INVISIBLE },
+                { "basin",              INVISIBLE },
                 { "brownfield",         DIRT_FLOOR_COLOR },
-                { "cemetery",           LAND_AREA_DEFAULT_COLOR },
-                { "conservation",       LAND_AREA_DEFAULT_COLOR },
-                { "depot",              LAND_AREA_DEFAULT_COLOR },
+                { "cemetery",           INVISIBLE },
+                { "conservation",       INVISIBLE },
+                { "depot",              INVISIBLE },
                 { "garages",            Color.FromArgb(128,128,255) },
                 { "grass",              GRASS_LONG_COLOR },
                 { "greenfield",         GRASS_COLOR },
-                { "greenhouse_horticulture", LAND_AREA_DEFAULT_COLOR },
-                { "landfill",           LAND_AREA_DEFAULT_COLOR },
-                { "military",           LAND_AREA_DEFAULT_COLOR },
-                { "plant_nursery",      LAND_AREA_DEFAULT_COLOR },
-                { "port",               LAND_AREA_DEFAULT_COLOR },
-                { "quarry",             LAND_AREA_DEFAULT_COLOR },
-                { "railway",            LAND_AREA_DEFAULT_COLOR },
-                { "recreation_ground",  LAND_AREA_DEFAULT_COLOR },
-                { "religious",          LAND_AREA_DEFAULT_COLOR },
-                { "reservoir",          LAND_AREA_DEFAULT_COLOR },
-                { "salt_pond",          LAND_AREA_DEFAULT_COLOR },
-                { "village_green",      LAND_AREA_DEFAULT_COLOR },
-                { "winter_sports",      LAND_AREA_DEFAULT_COLOR }
+                { "greenhouse_horticulture", INVISIBLE },
+                { "landfill",           INVISIBLE },
+                { "military",           INVISIBLE },
+                { "plant_nursery",      INVISIBLE },
+                { "port",               INVISIBLE },
+                { "quarry",             INVISIBLE },
+                { "railway",            INVISIBLE },
+                { "recreation_ground",  INVISIBLE },
+                { "religious",          INVISIBLE },
+                { "reservoir",          INVISIBLE },
+                { "salt_pond",          INVISIBLE },
+                { "village_green",      INVISIBLE },
+                { "winter_sports",      INVISIBLE }
             };
 
         public static readonly Color PAVEMENT_COLOR = Color.FromArgb(0, 0, 0);
-        public static readonly Color CONCRETE_FLOOR_COLOR = Color.FromArgb(128, 128, 128);
+        public static readonly Color CONCRETE_FLOOR_COLOR = Color.FromArgb(156, 156, 156);
         public static readonly Color DIRT_FLOOR_COLOR = Color.FromArgb(180, 130, 0);
 
-        public static readonly Color SIDEWALK_COLOR = Color.FromArgb(156, 156, 156);
+        public static readonly Color SIDEWALK_COLOR = Color.FromArgb(172, 172, 172);
         public static readonly Color ROAD_DEFAULT_COLOR = PAVEMENT_COLOR;
         public static readonly Dictionary<string, Color> ROAD_COLORS =
             new Dictionary<string, Color>

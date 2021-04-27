@@ -2,7 +2,7 @@
 
 namespace CddaOsmMaps.MapGen.Entities
 {
-    internal class River : MapElement
+    internal class River : TypedMapElement
     {
         public float Width { get; private set; }
         public River(string type, List<(float x, float y)> path)

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CddaOsmMaps.MapGen.Entities
 {
-    internal class Road : MapElement
+    internal class Road : TypedMapElement
     {
         public float Width { get; private set; }
         public float SidewalkWidth { get; private set; }

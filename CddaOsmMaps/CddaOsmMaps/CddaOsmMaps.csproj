@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include=".Crosscutting\ColorExt.cs" />
     <Compile Include=".Crosscutting\EnumExt.cs" />
+    <Compile Include=".Crosscutting\Geom.cs" />
     <Compile Include=".Crosscutting\Gis.cs" />
     <Compile Include=".Crosscutting\ImageBuilder.cs" />
     <Compile Include=".Crosscutting\JsonIO.cs" />

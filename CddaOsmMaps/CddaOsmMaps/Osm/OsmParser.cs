@@ -6,6 +6,7 @@ using OsmSharp;
 using OsmSharp.API;
 using OsmSharp.Complete;
 using OsmSharp.Streams;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace CddaOsmMaps.Osm
         private readonly static Regex BOUNDS_TAG_REGEX =
             new Regex("<bounds (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\"/>");
 
-        private const float PIXELS_PER_METER = 1.2f;
+        private const float DEFAULT_PIXELS_PER_METER = 1.2f;
 
         private const string MIN_LAT_KEY = "minlat";
         private const string MIN_LON_KEY = "minlon";
@@ -28,6 +29,7 @@ namespace CddaOsmMaps.Osm
         private const string TAG_WATER_ATTR_KEY = "water";
         private const string TAG_WATERWAY_ATTR_KEY = "waterway";
         private const string TAG_NATURAL_ATTR_KEY = "natural";
+        private const string TAG_COASTLINE_ATTR_VALUE = "coastline";
         // https://wiki.openstreetmap.org/wiki/Key:natural
         private readonly string[] TAG_WATER_ATTR_VALUES = new string[]
             { "water", "wetland", "glacier", "bay", "spring", "hot_spring" };
@@ -41,21 +43,19 @@ namespace CddaOsmMaps.Osm
         private readonly (float lat, float lon) Scales;
 
         public (int width, int height) MapSize { get; private set; }
-        public float PixelsPerMeter => PIXELS_PER_METER;
+        public float PixelsPerMeter { get; private set; }
 
-        public OsmReader(string osmXmlFilepath, Bounds bounds = null)
+        public OsmReader(string osmXmlFilepath, Bounds bounds = null, float? pixelsPerMeter = null)
         {
             OsmXmlFilepath = osmXmlFilepath;
-
-            // OsmSharp ignores <bounds/> element
-            // https://github.com/OsmSharp/core/issues/116
             Bounds = bounds ?? GetBounds();
+            PixelsPerMeter = pixelsPerMeter ?? DEFAULT_PIXELS_PER_METER;
 
             var avgLat = (Bounds.MinLatitude + Bounds.MaxLatitude) / 2 ?? 0;
             var metersPerLonDegree = Gis.MetersPerLonDegree(avgLat);
             Scales = (
-                lat: PIXELS_PER_METER * Gis.METERS_PER_LAT_DEG,
-                lon: PIXELS_PER_METER * metersPerLonDegree
+                lat: PixelsPerMeter * Gis.METERS_PER_LAT_DEG,
+                lon: PixelsPerMeter * metersPerLonDegree
             );
 
             var boundSizes = (
@@ -70,13 +70,29 @@ namespace CddaOsmMaps.Osm
         {
             using var fileStream = File.OpenRead(OsmXmlFilepath);
 
-            var source = OsmXmlFilepath.EndsWith("pbf")
-                ? new PBFOsmStreamSource(fileStream).ToComplete().ToList()
-                : new XmlOsmStreamSource(fileStream).ToComplete().ToList();
+            var source = (
+                    OsmXmlFilepath.EndsWith("pbf")
+                    ? (OsmStreamSource)new PBFOsmStreamSource(fileStream)
+                    : new XmlOsmStreamSource(fileStream)
+                )
+                /*
+                ? Does not work
+                .FilterBox(
+                    Bounds.MinLongitude.Value,
+                    Bounds.MinLatitude.Value,
+                    Bounds.MaxLongitude.Value,
+                    Bounds.MaxLatitude.Value,
+                    completeWays: true
+                )*/
+                .ToComplete()
+                .ToList();
 
             return new MapElements
             {
-                LandAreas = GetAreas(source).Concat(GetWaterAreas(source)).ToList(),
+                Coastlines = GetCoastlines(source).ToList(),
+                LandAreas = GetAreas(source)
+                    .Concat(GetWaterAreas(source))
+                    .ToList(),
                 Rivers = GetRivers(source).ToList(),
                 Roads = GetRoads(source).ToList(),
                 Buildings = GetBuildings(source).ToList()
@@ -112,6 +128,15 @@ namespace CddaOsmMaps.Osm
 
             return null;
         }
+
+        private IEnumerable<Coastline> GetCoastlines(List<ICompleteOsmGeo> source)
+            => source
+                .Where(osm => (osm.Tags?.ContainsKey(TAG_NATURAL_ATTR_KEY) ?? false)
+                    && osm.Tags[TAG_NATURAL_ATTR_KEY] == TAG_COASTLINE_ATTR_VALUE)
+                .SelectMany(GetWaysFromWayOrRelation)
+                .Select(way => way.Nodes.Select(Scale).ToList())
+                .Select(points => new Coastline(points))
+                .ToList();
 
         private IEnumerable<LandArea> GetAreas(List<ICompleteOsmGeo> source)
             => source
@@ -240,6 +265,7 @@ namespace CddaOsmMaps.Osm
                     return way;
                 });
         }
+
         private (float lat, float lon) Scale((float lat, float lon) coords)
             => (
                 lat: Scales.lat * coords.lat,
