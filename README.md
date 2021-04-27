@@ -4,17 +4,40 @@ WARNING: This is just a quick proof of concept that places only a few elements (
 
 ## Workflow
 
-1. Export OSM XML file from <https://www.openstreetmap.org/export>
+1. Export OSM file from <https://www.openstreetmap.org/export>, <https://export.hotosm.org> or any other source
 2. Create a New World in CDDA. All its content will be removed.
-3. In `CddaOsmMaps\CddaOsmMaps\Program.cs` [I know, this should be configurable with command line args]:
-    - Set `CDDA_FOLDER` pointing to `cdda` folder
-    - For XML files:
-        - Set `OSM_FILEPATH` with the path to the OSM XML file
-        - Set `OSM_BOUNDS` to `null` (if the XML file contains a `<bounds/>` tag)
-    - For PBF files:
-        - Set `OSM_FILEPATH` with the path to the OSM PBF file
-        - Set `OSM_BOUNDS` with the LAT-LON bounds values (I couldn't get the bounds from the PBF file I tested)
-4. Run
+3. Run command line:
+
+```text
+CddaOsmMaps
+  Generates Cataclysm CDDA maps from OpenStreetMap data (OSM XML and PBF)
+
+  Example:
+    CddaOsmMaps.exe ^
+      -cdda "C:\CDDA Game Launcher\cdda" ^
+      -save "Real World" ^
+      -osm "Boston.osm.pbf" ^
+      -bounds 42.35 -71.06 42.37 -71.02 ^
+      -ppm 1.2 ^
+      -img bostom-map.png
+
+Usage:
+  CddaOsmMaps [options]
+
+Options:
+  -cdda, --cdda-path <cdda-path> (REQUIRED)       Path to Cataclysm DDA folder
+  -save, --save-game <save-game>                  Name of the CDDA world save in which the map will be generated
+                                                  WARNING: All content will be deleted
+                                                  If not provided only the image will be generated
+  -osm, --osm-filepath <osm-filepath> (REQUIRED)  Path to the OSM file (PBF or XML format)
+  -bounds, --gis-bounds <gis-bounds>              Bounding box for the map, 4 values in this order:
+                                                  [MinLatitude], [MinLongitude], [MaxLatitude], [MaxLongitude]
+                                                  REQUIRED only if OSM file does not contain <bounds> element
+  -ppm, --pixels-per-meter <pixels-per-meter>     Map resolution. One pixel corresponds to one CDDA tile [default: 1,2]
+  -img, --image-filepath <image-filepath>         Intermediate image (PNG) will be saved to this file
+  --version                                       Show version information
+  -?, -h, --help                                  Show help and usage information
+```
 
 Discussion forum posts:
 
