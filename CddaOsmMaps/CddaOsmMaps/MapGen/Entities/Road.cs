@@ -20,7 +20,7 @@ namespace CddaOsmMaps.MapGen.Entities
             // TODO <tag k="footway" v="sidewalk"/>
             // TODO <tag k="sidewalk" v="both | right | left | no"/>
             "secondary", "tertiary", "residential",
-            "living_street", "road", "rest_area"
+            "living_street", "road", "rest_area", "service"
         };
 
         public Road(List<Polygon> polygons, string type, bool isTunnel, bool isBridge)

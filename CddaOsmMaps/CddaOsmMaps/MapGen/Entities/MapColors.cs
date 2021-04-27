@@ -70,7 +70,7 @@ namespace CddaOsmMaps.MapGen.Entities
             new Dictionary<string, Color>
             {
                 // https://wiki.openstreetmap.org/wiki/Key:highway
-                // TODO ? use <tag k="surface" v="..."/>
+                // TODO ? use <tag k="surface" v="..."/> to choose road material
                 // https://wiki.openstreetmap.org/wiki/Key:surface
                 { "motorway",       PAVEMENT_COLOR },
                 { "motorway_link",  PAVEMENT_COLOR },
@@ -85,7 +85,7 @@ namespace CddaOsmMaps.MapGen.Entities
                 { "unclassified",   DIRT_FLOOR_COLOR },
                 { "residential",    PAVEMENT_COLOR },
                 { "living_street",  PAVEMENT_COLOR },
-                { "service",        DIRT_FLOOR_COLOR },
+                { "service",        PAVEMENT_COLOR },
                 { "pedestrian",     CONCRETE_FLOOR_COLOR },
                 { "track",          DIRT_FLOOR_COLOR },
                 { "bus_guideway",   PAVEMENT_COLOR },
