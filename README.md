@@ -19,7 +19,8 @@ CddaOsmMaps
       -osm "Boston.osm.pbf" ^
       -bounds 42.35 -71.06 42.37 -71.02 ^
       -ppm 1.2 ^
-      -img bostom-map.png
+      -img bostom-map.png ^
+      -v
 
 Usage:
   CddaOsmMaps [options]
@@ -35,6 +36,7 @@ Options:
                                                   REQUIRED only if OSM file does not contain <bounds> element
   -ppm, --pixels-per-meter <pixels-per-meter>     Map resolution. One pixel corresponds to one CDDA tile [default: 1,2]
   -img, --image-filepath <image-filepath>         Intermediate image (PNG) will be saved to this file
+  -v, --verbose                                   Logs all warning messages
   --version                                       Show version information
   -?, -h, --help                                  Show help and usage information
 ```

@@ -13,6 +13,7 @@ namespace CddaOsmMaps.Args
         public float[] GisBounds { get; set; }
         public float PixelsPerMeter { get; set; }
         public string ImageFilePath { get; set; }
+        public bool Verbose { get; set; }
 
         private static readonly int[] VALID_GIS_BOUND_COUNTS = new int[] { 0, 4 };
 

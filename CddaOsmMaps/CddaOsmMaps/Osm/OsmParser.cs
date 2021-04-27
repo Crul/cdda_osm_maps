@@ -17,7 +17,6 @@ namespace CddaOsmMaps.Osm
 {
     internal class OsmReader : IMapProvider
     {
-        private const bool LOG = false;
         private readonly static Regex BOUNDS_TAG_REGEX =
             new Regex("<bounds (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\" (minlat|minlon|maxlat|maxlon)=\"(-?\\d+\\.\\d+)\"/>");
 
@@ -52,15 +51,22 @@ namespace CddaOsmMaps.Osm
         private readonly string OsmXmlFilepath;
         private readonly Bounds Bounds;
         private readonly (float lat, float lon) Scales;
+        private readonly bool Log;
 
         public (int width, int height) MapSize { get; private set; }
         public float PixelsPerMeter { get; private set; }
 
-        public OsmReader(string osmXmlFilepath, Bounds bounds = null, float? pixelsPerMeter = null)
+        public OsmReader(
+            string osmXmlFilepath,
+            Bounds bounds = null,
+            float? pixelsPerMeter = null,
+            bool log = false
+        )
         {
             OsmXmlFilepath = osmXmlFilepath;
             Bounds = bounds ?? GetBounds();
             PixelsPerMeter = pixelsPerMeter ?? DEFAULT_PIXELS_PER_METER;
+            Log = log;
 
             var avgLat = (Bounds.MinLatitude + Bounds.MaxLatitude) / 2 ?? 0;
             var metersPerLonDegree = Gis.MetersPerLonDegree(avgLat);
@@ -233,10 +239,10 @@ namespace CddaOsmMaps.Osm
                 .Select(complexWay => complexWay.GetData(Scale))
                 .Where(data => data.polygons.Count > 0);
 
-        private static ComplexWay ProcessWayOrRelation(ICompleteOsmGeo osm)
+        private ComplexWay ProcessWayOrRelation(ICompleteOsmGeo osm)
             => ProcessWayOrRelation(osm, null); // no overloading because lambda functions
 
-        private static ComplexWay ProcessWayOrRelation(ICompleteOsmGeo osm, IEnumerable<Tag> tags)
+        private ComplexWay ProcessWayOrRelation(ICompleteOsmGeo osm, IEnumerable<Tag> tags)
         {
             if (osm is CompleteWay)
             {
@@ -274,7 +280,7 @@ namespace CddaOsmMaps.Osm
                         if (!isOuterRole && !isInnerRole)
                         {
                             // https://wiki.openstreetmap.org/wiki/Types_of_relation
-                            if (LOG) Console.WriteLine($"WARNING: Unhandled relation role: {relMember.Role}");
+                            if (Log) Console.WriteLine($"WARNING: Unhandled relation role: {relMember.Role}");
                             continue;
                         }
 
@@ -299,7 +305,7 @@ namespace CddaOsmMaps.Osm
             return new ComplexWay(waysInfos, allTags);
         }
 
-        private static bool TryCloseOpenWay(
+        private bool TryCloseOpenWay(
             CompleteRelationMember openWayRelMember,
             List<CompleteRelationMember> unprocessedMembers,
             List<CompleteWay> openWays
@@ -333,7 +339,7 @@ namespace CddaOsmMaps.Osm
 
                 if (adjacentWay == null)
                 {
-                    if (LOG)
+                    if (Log)
                     {
                         Console.WriteLine($"WARNING: not fully closed way [Id: {way.Id}].");
                         // Console.WriteLine(string.Join(",", way.Tags.Select(t => $"{t.Key}={t.Value}")));

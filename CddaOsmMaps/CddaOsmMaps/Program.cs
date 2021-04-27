@@ -15,7 +15,12 @@ namespace CddaOsmMaps
             if (!args.Validate())
                 return;
 
-            var osmParser = new OsmReader(args.OsmFilepath, args.GetBounds(), args.PixelsPerMeter);
+            var osmParser = new OsmReader(
+                args.OsmFilepath,
+                args.GetBounds(),
+                args.PixelsPerMeter,
+                args.Verbose
+            );
             var mapGen = new MapGenerator(osmParser);
             mapGen.Generate(imgPath: args.ImageFilePath);
 

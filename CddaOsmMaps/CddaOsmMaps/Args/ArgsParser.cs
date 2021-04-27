@@ -39,7 +39,11 @@ namespace CddaOsmMaps.Args
 
                 new Option<string>(
                     new string[] { "--image-filepath", "-img" },
-                    description: "Intermediate image (PNG) will be saved to this file")
+                    description: "Intermediate image (PNG) will be saved to this file"),
+
+                new Option<bool>(
+                    new string[] { "--verbose", "-v" },
+                    description: "Logs all warning messages"),
             };
 
             rootCommand.Description = "Generates Cataclysm CDDA maps from OpenStreetMap data (OSM XML and PBF)"
@@ -51,7 +55,8 @@ namespace CddaOsmMaps.Args
                 + $"{Environment.NewLine}    -osm \"Boston.osm.pbf\" ^"
                 + $"{Environment.NewLine}    -bounds 42.35 -71.06 42.37 -71.02 ^"
                 + $"{Environment.NewLine}    -ppm 1.2 ^"
-                + $"{Environment.NewLine}    -img bostom-map.png";
+                + $"{Environment.NewLine}    -img bostom-map.png^"
+                + $"{Environment.NewLine}    -v";
 
             rootCommand.Handler = CommandHandler.Create(run);
 
