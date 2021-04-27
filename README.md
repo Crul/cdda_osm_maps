@@ -18,6 +18,7 @@ CddaOsmMaps
       -save "Real World" ^
       -osm "Boston.osm.pbf" ^
       -bounds 42.35 -71.06 42.37 -71.02 ^
+      -spawn 42.36 -71.04 ^
       -ppm 1.2 ^
       -img bostom-map.png ^
       -v
@@ -34,6 +35,7 @@ Options:
   -bounds, --gis-bounds <gis-bounds>              Bounding box for the map, 4 values in this order:
                                                   [MinLatitude], [MinLongitude], [MaxLatitude], [MaxLongitude]
                                                   REQUIRED only if OSM file does not contain <bounds> element
+  -spawn, --spawn-point <spawn-point>             Latitude and longitude of player position. Default value: Bounding box center
   -ppm, --pixels-per-meter <pixels-per-meter>     Map resolution. One pixel corresponds to one CDDA tile [default: 1,2]
   -img, --image-filepath <image-filepath>         Intermediate image (PNG) will be saved to this file
   -v, --verbose                                   Logs all warning messages

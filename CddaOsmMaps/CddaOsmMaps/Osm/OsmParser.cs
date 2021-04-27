@@ -236,7 +236,7 @@ namespace CddaOsmMaps.Osm
             Func<ICompleteOsmGeo, bool> predicate
         ) => ways.Where(predicate)
                 .Select(ProcessWayOrRelation)
-                .Select(complexWay => complexWay.GetData(Scale))
+                .Select(complexWay => complexWay.GetData(LatLonToXY))
                 .Where(data => data.polygons.Count > 0);
 
         private ComplexWay ProcessWayOrRelation(ICompleteOsmGeo osm)
@@ -385,16 +385,31 @@ namespace CddaOsmMaps.Osm
                         way.Tags.Add(tag);
         }
 
+        public PointFloat Scale(PointFloat point)
+        {
+            if (point != null)
+            {
+                var (x, y) = LatLonToXY((point.X, point.Y));
+                point.X = x;
+                point.Y = y;
+            }
+
+            return point;
+        }
+
         private (float lat, float lon) Scale((float lat, float lon) coords)
             => (
                 lat: Scales.lat * coords.lat,
                 lon: Scales.lon * coords.lon
             );
 
-        private (float lat, float lon) Scale(Node node)
+        private (float x, float y) LatLonToXY(Node node)
+            => LatLonToXY(((float)node.Latitude, (float)node.Longitude));
+
+        private (float x, float y) LatLonToXY((float lat, float lon) coords)
             => Scale((
-                (float)(node.Latitude - Bounds.MinLatitude ?? 0),
-                (float)(node.Longitude - Bounds.MinLongitude ?? 0)
+                coords.lat - Bounds.MinLatitude ?? 0,
+                coords.lon - Bounds.MinLongitude ?? 0
             ));
     }
 }

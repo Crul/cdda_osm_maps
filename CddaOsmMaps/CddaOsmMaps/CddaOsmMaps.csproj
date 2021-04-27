@@ -14,6 +14,7 @@
     <Compile Include=".Crosscutting\JsonIO.cs" />
     <Compile Include=".Crosscutting\MathExt.cs" />
     <Compile Include=".Crosscutting\Point3D.cs" />
+    <Compile Include=".Crosscutting\PointFloat.cs" />
   </ItemGroup>
 
   <ItemGroup>

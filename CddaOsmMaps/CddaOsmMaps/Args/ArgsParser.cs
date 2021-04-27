@@ -32,6 +32,10 @@ namespace CddaOsmMaps.Args
                         + $"{Environment.NewLine}[MinLatitude], [MinLongitude], [MaxLatitude], [MaxLongitude]"
                         + $"{Environment.NewLine}REQUIRED only if OSM file does not contain <bounds> element"),
 
+                new Option<float[]>(
+                    new string[] { "--spawn-point", "-spawn" },
+                    description: "Latitude and longitude of player position. Default value: Bounding box center"),
+
                 new Option<float>(
                     new string[] { "--pixels-per-meter", "-ppm" },
                     getDefaultValue: () => 1.2f,
@@ -54,6 +58,7 @@ namespace CddaOsmMaps.Args
                 + $"{Environment.NewLine}    -save \"Real World\" ^"
                 + $"{Environment.NewLine}    -osm \"Boston.osm.pbf\" ^"
                 + $"{Environment.NewLine}    -bounds 42.35 -71.06 42.37 -71.02 ^"
+                + $"{Environment.NewLine}    -spawn 42.36 -71.04 ^"
                 + $"{Environment.NewLine}    -ppm 1.2 ^"
                 + $"{Environment.NewLine}    -img bostom-map.png^"
                 + $"{Environment.NewLine}    -v";

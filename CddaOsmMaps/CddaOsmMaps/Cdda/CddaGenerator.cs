@@ -63,24 +63,25 @@ namespace CddaOsmMaps.Cdda
             SaveId = GetSaveId();
         }
 
-        public void Generate()
+        public void Generate(PointFloat spawnPoint)
         {
             CleanMapSegmenFiles();
             CleanSeen00();
             CleanO00();
             CleanMapMemory();
-            var playerAbspos = CleanMainSaveAndGetPlayerAbspos();
-            GenerateSegments(playerAbspos);
+            var playerAbsPos = CleanMainSaveAndGetPlayerAbsPos();
+            GenerateSegments(playerAbsPos, spawnPoint);
         }
 
-        private void GenerateSegments((int x, int y) playerAbspos)
+        private void GenerateSegments((int x, int y) playerAbsPos, PointFloat spawnPoint)
         {
-            static int toMapTopLeftAbspos(int playerAbspos, int imgSize)
-                => playerAbspos - (imgSize / 2);
-
+            var absSpawnPoint = (
+                x: (int)(spawnPoint?.X ?? (MapGen.MapSize.width / 2)),
+                y: (int)(spawnPoint?.Y ?? (MapGen.MapSize.height / 2))
+            );
             var mapTopLeftAbspos = (
-                x: toMapTopLeftAbspos(playerAbspos.x, MapGen.MapSize.width),
-                y: toMapTopLeftAbspos(playerAbspos.y, MapGen.MapSize.height)
+                x: playerAbsPos.x - absSpawnPoint.x,
+                y: playerAbsPos.y - absSpawnPoint.y
             );
 
             static int toMapBotRghtAbspos(int mapTopLeftAbspos, int imgSize)
@@ -397,20 +398,13 @@ namespace CddaOsmMaps.Cdda
             );
         }
 
-        private (int x, int y) CleanMainSaveAndGetPlayerAbspos()
+        private (int x, int y) CleanMainSaveAndGetPlayerAbsPos()
         {
             var mainSaveFilepath = Path
                 .Combine(SavePath, $"{SaveId}{MAIN_SAVE_FILE_EXT}");
 
             var mainSaveData = JsonIO
                 .ReadJson<Dictionary<string, object>>(mainSaveFilepath, skipLines: 1);
-
-            var levX = ((JsonElement)mainSaveData[LEVX_KEY]).GetInt32();
-            var levY = ((JsonElement)mainSaveData[LEVY_KEY]).GetInt32();
-
-            var playerData = (JsonElement)mainSaveData[PLAYER_KEY];
-            var playerPosX = playerData.GetProperty(PLAYER_POSX_KEY).GetInt32();
-            var playerPosY = playerData.GetProperty(PLAYER_POSY_KEY).GetInt32();
 
             mainSaveData[ACTIVE_MONSTERS_KEY] = Array.Empty<int>();
             mainSaveData[STAIR_MONSTERS_KEY] = Array.Empty<int>();
@@ -421,15 +415,22 @@ namespace CddaOsmMaps.Cdda
                 header: SAVE_VERSION_HEADER
             );
 
+            var levX = ((JsonElement)mainSaveData[LEVX_KEY]).GetInt32();
+            var levY = ((JsonElement)mainSaveData[LEVY_KEY]).GetInt32();
+
+            var playerData = (JsonElement)mainSaveData[PLAYER_KEY];
+            var playerPosX = playerData.GetProperty(PLAYER_POSX_KEY).GetInt32();
+            var playerPosY = playerData.GetProperty(PLAYER_POSY_KEY).GetInt32();
+
             static int toPlayerAbspos(int lev, int playerPos)
                 => (lev * SUBMAP_SIZE) + playerPos;
 
-            var playerAbspos = (
+            var playerAbsPos = (
                 x: toPlayerAbspos(levX, playerPosX),
                 y: toPlayerAbspos(levY, playerPosY)
             );
 
-            return playerAbspos;
+            return playerAbsPos;
         }
 
         private static CddaCoords GetCoords((int x, int y) abspos)
@@ -513,7 +514,7 @@ namespace CddaOsmMaps.Cdda
         );
 
         private static int GetAbsPosComponent(
-            int submap4xFile, int submapIdx, int submapRelpos
+            int submap4xFile, int submapIdx, int submapRelpos = 0
         ) => (
             submapRelpos
             + (submap4xFile * SUBMAP_x4_SIZE)
