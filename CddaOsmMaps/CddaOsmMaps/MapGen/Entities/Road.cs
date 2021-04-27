@@ -9,6 +9,8 @@ namespace CddaOsmMaps.MapGen.Entities
         public float Width { get; private set; }
         public float SidewalkWidth { get; private set; }
         public bool HasSidewalk { get; private set; }
+        public bool IsTunnel { get; private set; }
+        public bool IsBridge { get; private set; }
 
         private const float SIDEWALK_WIDTH_FACTOR = 1.5f;
 
@@ -21,7 +23,7 @@ namespace CddaOsmMaps.MapGen.Entities
             "living_street", "road", "rest_area"
         };
 
-        public Road(List<Polygon> polygons, string type)
+        public Road(List<Polygon> polygons, string type, bool isTunnel, bool isBridge)
             : base(polygons, type)
         {
             Width = ROAD_TYPE_WIDTHS.ContainsKey(Type)
@@ -29,8 +31,9 @@ namespace CddaOsmMaps.MapGen.Entities
                 : DEFAULT_ROAD_TYPE_WIDTH;
 
             SidewalkWidth = Width * SIDEWALK_WIDTH_FACTOR;
-
             HasSidewalk = ROAD_TYPES_WITH_SIDEWALK.Contains(type);
+            IsTunnel = isTunnel; // TODO not used
+            IsBridge = isBridge; // TODO not used
         }
 
         private const float DEFAULT_ROAD_TYPE_WIDTH = 8;

@@ -42,6 +42,9 @@ namespace CddaOsmMaps.Osm
         private readonly string[] TAG_WATER_ATTR_VALUES = new string[]
             { "water", "wetland", "glacier", "bay", "spring", "hot_spring" };
         private const string TAG_HIGHWAY_ATTR_KEY = "highway";
+        private readonly string[] TAG_TUNNEL_ROAD_ATTR_KEYS = new string[]
+            { "tunnel", "corridor" };
+        private const string TAG_BRIDGE_ATTR_KEY = "bridge";
         private const string TAG_BUILDING_ATTR_KEY = "building";
         private const string TAG_LANDUSE_ATTR_KEY = "landuse";
         private const string YES_VALUE = "yes";
@@ -177,7 +180,12 @@ namespace CddaOsmMaps.Osm
                 // TODO <tag k="footway" v="sidewalk | crossing"/>
                 .Select(data => new Road(
                     data.polygons,
-                    data.tags[TAG_HIGHWAY_ATTR_KEY]
+                    data.tags[TAG_HIGHWAY_ATTR_KEY],
+                    // TODO get Layer & level (can be both with different values)
+                    // https://wiki.openstreetmap.org/wiki/Key:layer
+                    // https://wiki.openstreetmap.org/wiki/Key:level
+                    TAG_TUNNEL_ROAD_ATTR_KEYS.Any(tag => data.tags.ContainsKey(tag)),
+                    data.tags.ContainsKey(TAG_BRIDGE_ATTR_KEY)
                 ));
 
         private IEnumerable<Building> GetBuildings(List<ICompleteOsmGeo> ways)
