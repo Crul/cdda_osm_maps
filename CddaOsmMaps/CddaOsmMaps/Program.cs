@@ -26,6 +26,9 @@ namespace CddaOsmMaps
             var mapGen = new MapGenerator(osmReader);
             mapGen.Generate(imgPath: args.ImageFilePath);
 
+            if (string.IsNullOrEmpty(args.SaveGame))
+                return;
+
             var cddaGenerator = new CddaGenerator(mapGen, args.CddaPath, args.SaveGame);
             var spawnPoint = GetSpawnPoint(args, osmReader);
             cddaGenerator.Generate(spawnPoint);
