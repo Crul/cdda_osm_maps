@@ -14,7 +14,7 @@ namespace CddaOsmMaps.Cdda
         private const string CDDA_SAVE_FOLDER = "save";
         private const string CDDA_SAVE_SEGMENTS_FOLDER = "maps";
         private const string MAIN_SAVE_FILE_EXT = ".sav";
-        private const string SUBMAP_4X_FILE_EXT = ".map";
+        private const string OVERMAP_TILE_FILE_EXT = ".map";
         private const int SAVE_VERSION = 33;
         private readonly string SAVE_VERSION_HEADER = $"# version {SAVE_VERSION}\n";
 
@@ -33,9 +33,9 @@ namespace CddaOsmMaps.Cdda
         private const string STAIR_MONSTERS_KEY = "stair_monsters";
 
         private const int SUBMAP_SIZE = 12;
-        private const int SUBMAP_x4_SIZE = SUBMAP_SIZE * 2;
-        private const int SUBMAP_x4_PER_SEGMENT = 32;
-        private const int SEGMENT_SIZE = SUBMAP_x4_PER_SEGMENT * SUBMAP_x4_SIZE;
+        private const int OVERMAP_TILE_SIZE = SUBMAP_SIZE * 2;
+        private const int OVERMAP_TILES_PER_SEGMENT = 32;
+        private const int SEGMENT_SIZE = OVERMAP_TILES_PER_SEGMENT * OVERMAP_TILE_SIZE;
 
         private readonly Dictionary<TerrainType, string> TILE_PER_TERRAIN =
             new Dictionary<TerrainType, string>
@@ -146,86 +146,86 @@ namespace CddaOsmMaps.Cdda
             );
             Directory.CreateDirectory(segmentPath);
 
-            var submap4xFileXFrom = (segmentX > segmentXFrom)
-                ? segmentX * SUBMAP_x4_PER_SEGMENT
-                : mapTopLeftCoords.Submap4xFile.X
+            var overmapTileFileXFrom = (segmentX > segmentXFrom)
+                ? segmentX * OVERMAP_TILES_PER_SEGMENT
+                : mapTopLeftCoords.OvermapTileFile.X
                     + (mapTopLeftCoords.SubmapRelPos.X == 0 ? 0 : 1);
 
-            var submap4xFileXTo = (segmentX < segmentXTo)
-                ? (segmentX + 1) * SUBMAP_x4_PER_SEGMENT
-                : mapBotRghtCoords.Submap4xFile.X
+            var overmapTileFileXTo = (segmentX < segmentXTo)
+                ? (segmentX + 1) * OVERMAP_TILES_PER_SEGMENT
+                : mapBotRghtCoords.OvermapTileFile.X
                     - (mapTopLeftCoords.SubmapRelPos.X == SUBMAP_SIZE - 1 ? 0 : 1);
 
-            var submap4xFileXRange = EnumExt.RangeCount(submap4xFileXFrom, submap4xFileXTo);
+            var overmapTileFileXRange = EnumExt.RangeCount(overmapTileFileXFrom, overmapTileFileXTo);
 
-            var submap4xFileYFrom = (segmentY > segmentYFrom)
-                ? segmentY * SUBMAP_x4_PER_SEGMENT
-                : mapTopLeftCoords.Submap4xFile.Y
+            var overmapTileFileYFrom = (segmentY > segmentYFrom)
+                ? segmentY * OVERMAP_TILES_PER_SEGMENT
+                : mapTopLeftCoords.OvermapTileFile.Y
                     + (mapTopLeftCoords.SubmapRelPos.Y == 0 ? 0 : 1);
 
-            var submap4xFileYTo = (segmentY < segmentYTo)
-                ? (segmentY + 1) * SUBMAP_x4_PER_SEGMENT
-                : mapBotRghtCoords.Submap4xFile.Y
+            var overmapTileFileYTo = (segmentY < segmentYTo)
+                ? (segmentY + 1) * OVERMAP_TILES_PER_SEGMENT
+                : mapBotRghtCoords.OvermapTileFile.Y
                     - (mapTopLeftCoords.SubmapRelPos.Y == SUBMAP_SIZE - 1 ? 0 : 1);
 
-            var submap4xFileYRange = EnumExt.RangeCount(submap4xFileYFrom, submap4xFileYTo);
+            var overmapTileFileYRange = EnumExt.RangeCount(overmapTileFileYFrom, overmapTileFileYTo);
 
-            foreach (var submap4xFileX in submap4xFileXRange)
-                foreach (var submap4xFileY in submap4xFileYRange)
-                    GenerateSubmap4xFile(
+            foreach (var overmapTileFileX in overmapTileFileXRange)
+                foreach (var overmapTileFileY in overmapTileFileYRange)
+                    GenerateOvermapTileFile(
                         mapTopLeftCoords,
                         segmentPath,
-                        submap4xFileX,
-                        submap4xFileY
+                        overmapTileFileX,
+                        overmapTileFileY
                     );
         }
 
-        private void GenerateSubmap4xFile(
+        private void GenerateOvermapTileFile(
             CddaCoords mapTopLeftCoords,
             string segmentPath,
-            int submap4xFileX,
-            int submap4xFileY
+            int overmapTileFileX,
+            int overmapTileFileY
         )
         {
-            var submap4XData = new List<object>();
+            var overmapTileData = new List<object>();
             foreach (var submapIdxX in EnumExt.Range(2))
                 foreach (var submapIdxY in EnumExt.Range(2))
-                    submap4XData.Add(GetSubmap(
+                    overmapTileData.Add(GetSubmap(
                         mapTopLeftCoords,
-                        submap4xFileX,
-                        submap4xFileY,
+                        overmapTileFileX,
+                        overmapTileFileY,
                         submapIdxX,
                         submapIdxY
                     ));
 
-            var submap4XFilename = $"{submap4xFileX}.{submap4xFileY}.0{SUBMAP_4X_FILE_EXT}";
-            JsonIO.WriteJson(Path.Combine(segmentPath, submap4XFilename), submap4XData);
+            var overmapTileFilename = $"{overmapTileFileX}.{overmapTileFileY}.0{OVERMAP_TILE_FILE_EXT}";
+            JsonIO.WriteJson(Path.Combine(segmentPath, overmapTileFilename), overmapTileData);
         }
 
         private object GetSubmap(
             CddaCoords mapTopLeftCoords,
-            int submap4xFileX,
-            int submap4xFileY,
+            int overmapTileFileX,
+            int overmapTileFileY,
             int submapIdxX,
             int submapIdxY)
         {
             // Examples:
             //   99.557.map['coordinates'] = [ [ 198, 1114 ], [ 198, 1115 ], [ 199, 1114 ], [ 199, 1115 ] ]
             //   36.546.map['coordinates'] = [ [ 72, 1092 ], [ 72, 1093 ], [ 73, 1092 ], [ 73, 1093 ] ]
-            static int toSubmapCoord(int submap4xFile, int submapIdx)
-                => (submap4xFile * 2) + submapIdx;
+            static int toSubmapCoord(int overmapTileFile, int submapIdx)
+                => (overmapTileFile * 2) + submapIdx;
 
             var submapCoord = new int[]
             {
-                toSubmapCoord(submap4xFileX, submapIdxX),
-                toSubmapCoord(submap4xFileY, submapIdxY),
+                toSubmapCoord(overmapTileFileX, submapIdxX),
+                toSubmapCoord(overmapTileFileY, submapIdxY),
                 0
             };
 
             var terrain = GetSubmapTerrain(
                 mapTopLeftCoords,
-                submap4xFileX,
-                submap4xFileY,
+                overmapTileFileX,
+                overmapTileFileY,
                 submapIdxX,
                 submapIdxY
             );
@@ -253,8 +253,8 @@ namespace CddaOsmMaps.Cdda
 
         private object[] GetSubmapTerrain(
             CddaCoords mapTopLeftCoords,
-            int submap4xFileX,
-            int submap4xFileY,
+            int overmapTileFileX,
+            int overmapTileFileY,
             int submapIdxX,
             int submapIdxY
         )
@@ -264,7 +264,7 @@ namespace CddaOsmMaps.Cdda
                 foreach (var submapTileY in EnumExt.Range(SUBMAP_SIZE))
                 {
                     var tileAbsPos = GetAbsPos(
-                        (submap4xFileX, submap4xFileY),
+                        (overmapTileFileX, overmapTileFileY),
                         (submapIdxX, submapIdxY),
                         (submapTileY, submapTileX) // reversed X <-> Y
                     );
@@ -463,36 +463,36 @@ namespace CddaOsmMaps.Cdda
                 y: toRelposInSegment(abspos.y)
             );
 
-            // IN SEGMENT RELATIVE 4x SUBMAP relSubmap4xFile
+            // IN SEGMENT RELATIVE OVERMAP (4x SUBMAP) relOvermapTileFile
             // floor(relposInSegment / 24) = 0, 24
-            static int toRelSubmap4xFile(int relposInSegment)
-                => (int)Math.Floor((double)relposInSegment / SUBMAP_x4_SIZE);
+            static int toRelOvermapTileFile(int relposInSegment)
+                => (int)Math.Floor((double)relposInSegment / OVERMAP_TILE_SIZE);
 
-            var relSubmap4xFile = (
-                x: toRelSubmap4xFile(relposInSegment.x),
-                y: toRelSubmap4xFile(relposInSegment.y)
+            var relOvermapTileFile = (
+                x: toRelOvermapTileFile(relposInSegment.x),
+                y: toRelOvermapTileFile(relposInSegment.y)
             );
 
-            // ABSOLUTE 4x SUBMAP FILE
-            // rel_submap_4x_file + segment * 32  = 128, 24
-            static int toSubmap4xFile(int relSubmap4xFile, int segment)
-                => (int)Math.Floor((double)relSubmap4xFile + (segment * SUBMAP_x4_PER_SEGMENT));
+            // ABSOLUTE OVERMAP TILE (4x SUBMAP) FILE
+            // relOvermapTileFile + segment * 32  = 128, 24
+            static int toOvermapTileFile(int relOvermapTileFile, int segment)
+                => (int)Math.Floor((double)relOvermapTileFile + (segment * OVERMAP_TILES_PER_SEGMENT));
 
-            var submap4xFile = (
-                x: toSubmap4xFile(relSubmap4xFile.x, segment.x),
-                y: toSubmap4xFile(relSubmap4xFile.y, segment.y)
+            var overmapTileFile = (
+                x: toOvermapTileFile(relOvermapTileFile.x, segment.x),
+                y: toOvermapTileFile(relOvermapTileFile.y, segment.y)
             );
 
-            // SUBMAP INDEX IN 4xSUBMAP FILE
-            // floor(relposInSegment / 12) - (2 x relSubmap4xFile)
+            // SUBMAP INDEX IN OVERMAP TILE (4x SUBMAP) FILE
+            // floor(relposInSegment / 12) - (2 x relOvermapTileFile)
             //                             = (0, 48) - 2x(0, 24)
             //                             =  0,  0
-            static int toSubmapIdxIn4xFile(int relposInSegment, int relSubmap4xFile)
-                => (int)Math.Floor((double)relposInSegment / SUBMAP_SIZE) - (2 * relSubmap4xFile);
+            static int toSubmapIdxInOvermapTileFile(int relposInSegment, int relOvermapTileFile)
+                => (int)Math.Floor((double)relposInSegment / SUBMAP_SIZE) - (2 * relOvermapTileFile);
 
-            var submapIdxIn4xFile = (
-                x: toSubmapIdxIn4xFile(relposInSegment.x, relSubmap4xFile.x),
-                y: toSubmapIdxIn4xFile(relposInSegment.y, relSubmap4xFile.y)
+            var submapIdxInOvermapTileFile = (
+                x: toSubmapIdxInOvermapTileFile(relposInSegment.x, relOvermapTileFile.x),
+                y: toSubmapIdxInOvermapTileFile(relposInSegment.y, relOvermapTileFile.y)
             );
 
             // IN SUBMAP RELATIVE POSITION
@@ -508,26 +508,26 @@ namespace CddaOsmMaps.Cdda
             (
                 abspos,
                 new Point3D(segment),
-                new Point3D(submap4xFile),
-                new Point3D(submapIdxIn4xFile),
+                new Point3D(overmapTileFile),
+                new Point3D(submapIdxInOvermapTileFile),
                 new Point3D(submapRelpos)
             );
         }
 
         private static (int x, int y) GetAbsPos(
-            (int x, int y) submap4xFile,
+            (int x, int y) overmapTileFile,
             (int x, int y) submapIdx,
             (int x, int y) submapRelpos
         ) => (
-            GetAbsPosComponent(submap4xFile.x, submapIdx.x, submapRelpos.x),
-            GetAbsPosComponent(submap4xFile.y, submapIdx.y, submapRelpos.y)
+            GetAbsPosComponent(overmapTileFile.x, submapIdx.x, submapRelpos.x),
+            GetAbsPosComponent(overmapTileFile.y, submapIdx.y, submapRelpos.y)
         );
 
         private static int GetAbsPosComponent(
-            int submap4xFile, int submapIdx, int submapRelpos = 0
+            int overmapTileFile, int submapIdx, int submapRelpos = 0
         ) => (
             submapRelpos
-            + (submap4xFile * SUBMAP_x4_SIZE)
+            + (overmapTileFile * OVERMAP_TILE_SIZE)
             + (submapIdx * SUBMAP_SIZE)
         );
 

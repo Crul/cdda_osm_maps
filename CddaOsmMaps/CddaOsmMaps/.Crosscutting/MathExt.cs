@@ -12,5 +12,8 @@ namespace CddaOsmMaps.Crosscutting
 
         public static float ToDegrees(float angleInRadians)
             => (float)(angleInRadians * 180 / Math.PI);
+
+        public static int LimitToMultipleOf(float numberToLimit, int factor)
+            => factor * (int)Math.Floor((double)(numberToLimit / factor));
     }
 }
