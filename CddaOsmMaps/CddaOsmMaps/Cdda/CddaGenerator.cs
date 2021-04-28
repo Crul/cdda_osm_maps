@@ -69,11 +69,17 @@ namespace CddaOsmMaps.Cdda
             CleanSeen00();
             CleanO00();
             CleanMapMemory();
+
             var playerAbsPos = CleanMainSaveAndGetPlayerAbsPos();
-            GenerateSegments(playerAbsPos, spawnPoint);
+            (var mapTopLeftCoords, var mapBotRghtCoords)
+                = GetMapCddaCoords(playerAbsPos, spawnPoint);
+
+            GenerateSegments(mapTopLeftCoords, mapBotRghtCoords);
         }
 
-        private void GenerateSegments((int x, int y) playerAbsPos, PointFloat spawnPoint)
+        private (CddaCoords topLeft, CddaCoords botRght) GetMapCddaCoords(
+            (int x, int y) playerAbsPos, PointFloat spawnPoint
+        )
         {
             var absSpawnPoint = (
                 x: (int)(spawnPoint?.X ?? (MapGen.MapSize.width / 2)),
@@ -95,6 +101,11 @@ namespace CddaOsmMaps.Cdda
             var mapTopLeftCoords = GetCoords(mapTopLeftAbspos);
             var mapBotRghtCoords = GetCoords(mapBotRghtAbspos);
 
+            return (mapTopLeftCoords, mapBotRghtCoords);
+        }
+
+        private void GenerateSegments(CddaCoords mapTopLeftCoords, CddaCoords mapBotRghtCoords)
+        {
             var segmentXFrom = mapTopLeftCoords.Segment.X;
             var segmentXTo = mapBotRghtCoords.Segment.X;
             var segmentYFrom = mapTopLeftCoords.Segment.Y;
@@ -106,7 +117,6 @@ namespace CddaOsmMaps.Cdda
             foreach (var segmentX in segmentXRange)
                 foreach (var segmentY in segmentYRange)
                     GenerateSegment(
-                        mapTopLeftAbspos,
                         mapTopLeftCoords,
                         mapBotRghtCoords,
                         segmentXFrom,
@@ -119,7 +129,6 @@ namespace CddaOsmMaps.Cdda
         }
 
         private void GenerateSegment(
-            (int x, int y) mapTopLeftAbspos,
             CddaCoords mapTopLeftCoords,
             CddaCoords mapBotRghtCoords,
             int segmentXFrom,
@@ -164,7 +173,7 @@ namespace CddaOsmMaps.Cdda
             foreach (var submap4xFileX in submap4xFileXRange)
                 foreach (var submap4xFileY in submap4xFileYRange)
                     GenerateSubmap4xFile(
-                        mapTopLeftAbspos,
+                        mapTopLeftCoords,
                         segmentPath,
                         submap4xFileX,
                         submap4xFileY
@@ -172,7 +181,7 @@ namespace CddaOsmMaps.Cdda
         }
 
         private void GenerateSubmap4xFile(
-            (int x, int y) mapTopLeftAbspos,
+            CddaCoords mapTopLeftCoords,
             string segmentPath,
             int submap4xFileX,
             int submap4xFileY
@@ -182,7 +191,7 @@ namespace CddaOsmMaps.Cdda
             foreach (var submapIdxX in EnumExt.Range(2))
                 foreach (var submapIdxY in EnumExt.Range(2))
                     submap4XData.Add(GetSubmap(
-                        mapTopLeftAbspos,
+                        mapTopLeftCoords,
                         submap4xFileX,
                         submap4xFileY,
                         submapIdxX,
@@ -194,7 +203,7 @@ namespace CddaOsmMaps.Cdda
         }
 
         private object GetSubmap(
-            (int x, int y) mapTopLeftAbspos,
+            CddaCoords mapTopLeftCoords,
             int submap4xFileX,
             int submap4xFileY,
             int submapIdxX,
@@ -214,7 +223,7 @@ namespace CddaOsmMaps.Cdda
             };
 
             var terrain = GetSubmapTerrain(
-                mapTopLeftAbspos,
+                mapTopLeftCoords,
                 submap4xFileX,
                 submap4xFileY,
                 submapIdxX,
@@ -243,7 +252,7 @@ namespace CddaOsmMaps.Cdda
         }
 
         private object[] GetSubmapTerrain(
-            (int x, int y) mapTopLeftAbspos,
+            CddaCoords mapTopLeftCoords,
             int submap4xFileX,
             int submap4xFileY,
             int submapIdxX,
@@ -261,8 +270,8 @@ namespace CddaOsmMaps.Cdda
                     );
 
                     var pixelPos = (
-                        x: tileAbsPos.x - mapTopLeftAbspos.x,
-                        y: tileAbsPos.y - mapTopLeftAbspos.y
+                        x: tileAbsPos.x - mapTopLeftCoords.Abspos.x,
+                        y: tileAbsPos.y - mapTopLeftCoords.Abspos.y
                     );
 
                     var tileType = TILE_PER_TERRAIN[MapGen.GetTerrain(pixelPos)];
@@ -496,12 +505,13 @@ namespace CddaOsmMaps.Cdda
             );
 
             return new CddaCoords
-            {
-                Segment = new Point3D(segment),
-                Submap4xFile = new Point3D(submap4xFile),
-                SubmapIdx = new Point3D(submapIdxIn4xFile),
-                SubmapRelPos = new Point3D(submapRelpos)
-            };
+            (
+                abspos,
+                new Point3D(segment),
+                new Point3D(submap4xFile),
+                new Point3D(submapIdxIn4xFile),
+                new Point3D(submapRelpos)
+            );
         }
 
         private static (int x, int y) GetAbsPos(
