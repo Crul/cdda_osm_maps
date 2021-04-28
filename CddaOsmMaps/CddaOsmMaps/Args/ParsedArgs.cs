@@ -60,10 +60,10 @@ namespace CddaOsmMaps.Args
                 ? null
                 : new Bounds
                 {
-                    MinLatitude = GisBounds[0],
-                    MinLongitude = GisBounds[1],
-                    MaxLatitude = GisBounds[2],
-                    MaxLongitude = GisBounds[3]
+                    MinLatitude = Math.Min(GisBounds[0], GisBounds[2]),
+                    MinLongitude = Math.Min(GisBounds[1], GisBounds[3]),
+                    MaxLatitude = Math.Max(GisBounds[0], GisBounds[2]),
+                    MaxLongitude = Math.Max(GisBounds[1], GisBounds[3])
                 };
 
         private static bool CheckArrayValueCount(
