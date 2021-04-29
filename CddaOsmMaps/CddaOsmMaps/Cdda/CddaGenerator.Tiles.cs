@@ -1,4 +1,5 @@
 ﻿using CddaOsmMaps.Crosscutting;
+using CddaOsmMaps.MapGen.Entities;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,45 +9,53 @@ namespace CddaOsmMaps.Cdda
 {
     partial class CddaGenerator
     {
+        private readonly Dictionary<TerrainType, string> TILE_PER_TERRAIN =
+            new Dictionary<TerrainType, string>
+            {
+                { TerrainType.Default,       "t_grass" },
+                { TerrainType.DeepMovWater,  "t_water_moving_dp" },
+                { TerrainType.Pavement,      "t_pavement" },
+                { TerrainType.ConcreteFloor, "t_concrete" },
+                { TerrainType.DirtFloor,     "t_dirt" },
+                { TerrainType.Wall,          "t_concrete_wall" },
+                { TerrainType.HouseFloor,    "t_thconc_floor" },
+                { TerrainType.Grass,         "t_grass" },
+                { TerrainType.GrassLong,     "t_grass_long" },
+                { TerrainType.Sidewalk,      "t_sidewalk" },
+            };
+
         private void WriteSegments()
         {
-            var mapTopLeftCoords = new CddaTileCoords(GetAbsPosFromRelMapPos(new Point(0, 0)));
-            var mapBotRghtCoords = new CddaTileCoords(GetAbsPosFromRelMapPos(
-                new Point(MapGen.MapSize.Width - 1, MapGen.MapSize.Height - 1)
-            ));
-
             if (Log)
             {
-                if (mapTopLeftCoords.RelPosInSubmap.X != 0
-                    || mapTopLeftCoords.RelPosInSubmap.Y != 0
-                    || mapTopLeftCoords.SubmapIdx.X != 0
-                    || mapTopLeftCoords.SubmapIdx.Y != 0)
+                if (MapTopLeftCoords.RelPosInSubmap.X != 0
+                    || MapTopLeftCoords.RelPosInSubmap.Y != 0
+                    || MapTopLeftCoords.SubmapIdx.X != 0
+                    || MapTopLeftCoords.SubmapIdx.Y != 0)
                     Console.WriteLine("Map Top Left corner not at (0,0) relative (to Overmap Tile) position");
 
-                if (mapBotRghtCoords.RelPosInSubmap.X != CddaMap.SUBMAP_SIZE - 1
-                    || mapBotRghtCoords.RelPosInSubmap.Y != CddaMap.SUBMAP_SIZE - 1
-                    || mapBotRghtCoords.SubmapIdx.X != 1
-                    || mapBotRghtCoords.SubmapIdx.Y != 1)
+                if (MapBotRghtCoords.RelPosInSubmap.X != CddaMap.SUBMAP_SIZE - 1
+                    || MapBotRghtCoords.RelPosInSubmap.Y != CddaMap.SUBMAP_SIZE - 1
+                    || MapBotRghtCoords.SubmapIdx.X != 1
+                    || MapBotRghtCoords.SubmapIdx.Y != 1)
                     Console.WriteLine("Map Bottom Right corner not at (MAX,MAX) relative (to Overmap Tile) position");
             }
 
             var segmentFrom = new Point(
-                mapTopLeftCoords.Segment.X,
-                mapTopLeftCoords.Segment.Y
+                MapTopLeftCoords.Segment.X,
+                MapTopLeftCoords.Segment.Y
             );
             var segmentTo = new Point(
-                mapBotRghtCoords.Segment.X,
-                mapBotRghtCoords.Segment.Y
+                MapBotRghtCoords.Segment.X,
+                MapBotRghtCoords.Segment.Y
             );
 
-            var segmentXRange = EnumExt.RangeCount(segmentFrom.X, segmentTo.X);
-            var segmentYRange = EnumExt.RangeCount(segmentFrom.Y, segmentTo.Y);
+            var segmentXRange = EnumExt.RangeFromTo(segmentFrom.X, segmentTo.X);
+            var segmentYRange = EnumExt.RangeFromTo(segmentFrom.Y, segmentTo.Y);
 
             foreach (var segmentX in segmentXRange)
                 foreach (var segmentY in segmentYRange)
                     WriteSegment(
-                        mapTopLeftCoords,
-                        mapBotRghtCoords,
                         segmentFrom,
                         segmentTo,
                         new Point(segmentX, segmentY)
@@ -54,8 +63,6 @@ namespace CddaOsmMaps.Cdda
         }
 
         private void WriteSegment(
-            CddaTileCoords mapTopLeftCoords,
-            CddaTileCoords mapBotRghtCoords,
             Point segmentFrom,
             Point segmentTo,
             Point segment
@@ -69,40 +76,38 @@ namespace CddaOsmMaps.Cdda
             Directory.CreateDirectory(segmentPath);
 
             var overmapTileFileXFrom = (segment.X > segmentFrom.X)
-                ? segment.X * CddaMap.OVERMAP_TILES_PER_SEGMENT
-                : mapTopLeftCoords.OvermapTile.X
-                    + (mapTopLeftCoords.RelPosInSubmap.X == 0 ? 0 : 1);
+                ? segment.X * CddaMap.SEGMENT_SIZE_IN_OVERMAP_TILES
+                : MapTopLeftCoords.OvermapTile.X
+                    + (MapTopLeftCoords.RelPosInSubmap.X == 0 ? 0 : 1);
 
             var overmapTileFileXTo = (segment.X < segmentTo.X)
-                ? (segment.X + 1) * CddaMap.OVERMAP_TILES_PER_SEGMENT
-                : mapBotRghtCoords.OvermapTile.X
-                    - (mapTopLeftCoords.RelPosInSubmap.X == CddaMap.SUBMAP_SIZE - 1 ? 0 : 1);
+                ? (segment.X + 1) * CddaMap.SEGMENT_SIZE_IN_OVERMAP_TILES
+                : MapBotRghtCoords.OvermapTile.X
+                    - (MapTopLeftCoords.RelPosInSubmap.X == CddaMap.SUBMAP_SIZE - 1 ? 0 : 1);
 
-            var overmapTileFileXRange = EnumExt.RangeCount(overmapTileFileXFrom, overmapTileFileXTo);
+            var overmapTileFileXRange = EnumExt.RangeFromTo(overmapTileFileXFrom, overmapTileFileXTo);
 
             var overmapTileFileYFrom = (segment.Y > segmentFrom.Y)
-                ? segment.Y * CddaMap.OVERMAP_TILES_PER_SEGMENT
-                : mapTopLeftCoords.OvermapTile.Y
-                    + (mapTopLeftCoords.RelPosInSubmap.Y == 0 ? 0 : 1);
+                ? segment.Y * CddaMap.SEGMENT_SIZE_IN_OVERMAP_TILES
+                : MapTopLeftCoords.OvermapTile.Y
+                    + (MapTopLeftCoords.RelPosInSubmap.Y == 0 ? 0 : 1);
 
             var overmapTileFileYTo = (segment.Y < segmentTo.Y)
-                ? (segment.Y + 1) * CddaMap.OVERMAP_TILES_PER_SEGMENT
-                : mapBotRghtCoords.OvermapTile.Y
-                    - (mapTopLeftCoords.RelPosInSubmap.Y == CddaMap.SUBMAP_SIZE - 1 ? 0 : 1);
+                ? (segment.Y + 1) * CddaMap.SEGMENT_SIZE_IN_OVERMAP_TILES
+                : MapBotRghtCoords.OvermapTile.Y
+                    - (MapTopLeftCoords.RelPosInSubmap.Y == CddaMap.SUBMAP_SIZE - 1 ? 0 : 1);
 
-            var overmapTileFileYRange = EnumExt.RangeCount(overmapTileFileYFrom, overmapTileFileYTo);
+            var overmapTileFileYRange = EnumExt.RangeFromTo(overmapTileFileYFrom, overmapTileFileYTo);
 
             foreach (var overmapTileFileX in overmapTileFileXRange)
                 foreach (var overmapTileFileY in overmapTileFileYRange)
                     WriteOvermapTileFile(
-                        mapTopLeftCoords,
                         segmentPath,
                         new Point(overmapTileFileX, overmapTileFileY)
                     );
         }
 
         private void WriteOvermapTileFile(
-            CddaTileCoords mapTopLeftCoords,
             string segmentPath,
             Point overmapTileFile
         )
@@ -111,7 +116,6 @@ namespace CddaOsmMaps.Cdda
             foreach (var submapIdxX in EnumExt.Range(2))
                 foreach (var submapIdxY in EnumExt.Range(2))
                     overmapTileData.Add(GetSubmap(
-                        mapTopLeftCoords,
                         overmapTileFile,
                         new Point(submapIdxX, submapIdxY)
                     ));
@@ -120,11 +124,7 @@ namespace CddaOsmMaps.Cdda
             JsonIO.WriteJson(Path.Combine(segmentPath, overmapTileFilename), overmapTileData);
         }
 
-        private object GetSubmap(
-            CddaTileCoords mapTopLeftCoords,
-            Point overmapTileFile,
-            Point submapIdx
-        )
+        private object GetSubmap(Point overmapTileFile, Point submapIdx)
         {
             // Examples:
             //   99.557.map['coordinates'] = [ [ 198, 1114 ], [ 198, 1115 ], [ 199, 1114 ], [ 199, 1115 ] ]
@@ -139,11 +139,7 @@ namespace CddaOsmMaps.Cdda
                 0
             };
 
-            var terrain = GetSubmapTerrain(
-                mapTopLeftCoords,
-                overmapTileFile,
-                submapIdx
-            );
+            var terrain = GetSubmapTerrain(overmapTileFile, submapIdx);
 
             var submap = new
             {
@@ -166,11 +162,7 @@ namespace CddaOsmMaps.Cdda
             return submap;
         }
 
-        private object[] GetSubmapTerrain(
-            CddaTileCoords mapTopLeftCoords,
-            Point overmapTileFile,
-            Point submapIdx
-        )
+        private object[] GetSubmapTerrain(Point overmapTileFile, Point submapIdx)
         {
             var terrain = new List<string>();
             foreach (var submapTileX in EnumExt.Range(CddaMap.SUBMAP_SIZE))
@@ -183,8 +175,8 @@ namespace CddaOsmMaps.Cdda
                     );
 
                     var pixelPos = new Point(
-                        tileAbsPos.X - mapTopLeftCoords.Abspos.X,
-                        tileAbsPos.Y - mapTopLeftCoords.Abspos.Y
+                        tileAbsPos.X - MapTopLeftCoords.Abspos.X,
+                        tileAbsPos.Y - MapTopLeftCoords.Abspos.Y
                     );
 
                     var tileType = TILE_PER_TERRAIN[MapGen.GetTerrain(pixelPos)];
@@ -196,40 +188,16 @@ namespace CddaOsmMaps.Cdda
         }
 
         private static object[] SimplifyTerrain(List<string> terrain)
-        {
-            var simplified = new List<object>();
-            var tmpTileInfo = (
-                tile: string.Empty,
-                count: 0
-            );
-            foreach (var tile in terrain)
-            {
-                if (tile == tmpTileInfo.tile)
-                    tmpTileInfo.count++;
-                else
-                {
-                    ProcessTerrainTile(simplified, tmpTileInfo);
-                    tmpTileInfo = (tile, 1);
-                }
-            }
-
-            ProcessTerrainTile(simplified, tmpTileInfo);
-
-            return simplified.ToArray();
-        }
+            => SimplifyTiles(terrain, ProcessTerrainTile);
 
         private static void ProcessTerrainTile(
             List<object> simplified,
             (string tile, int count) tmpTileInfo
-        )
-        {
-            if (tmpTileInfo.count == 1)
-                simplified.Add(tmpTileInfo.tile);
-            else if (tmpTileInfo.count > 1)
-                simplified.Add(
-                    new object[] { tmpTileInfo.tile, tmpTileInfo.count }
-                );
-        }
+        ) => ProcessTile(
+            simplified,
+            tmpTileInfo,
+            singleTileAsArray: false
+        );
 
         private static Point GetAbsPos(
             Point overmapTileFile,

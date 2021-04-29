@@ -42,7 +42,7 @@ namespace CddaOsmMaps.Cdda
                 int realityBubbleTopLefSubmapIdx
             ) => MathExt.MathMod(
                 realityBubbleTopLefOvermapTile * 2,
-                CddaMap.SUBMAP_TILES_PER_REGION
+                CddaMap.REGION_SIZE_IN_SUBMAP_TILES
             ) + realityBubbleTopLefSubmapIdx;
 
             SavegameLev = new Point3DInt((

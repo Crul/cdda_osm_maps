@@ -8,6 +8,7 @@ namespace CddaOsmMaps.MapGen.Contracts
         Size OvermapSize { get; }
         Size MapSize { get; }
 
-        TerrainType GetTerrain(Point pixelPos);
+        TerrainType GetTerrain(Point tilePos);
+        OvermapTerrainType GetOvermapTerrain(Point overmapTilePos);
     }
 }

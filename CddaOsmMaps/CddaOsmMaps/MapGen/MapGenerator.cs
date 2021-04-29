@@ -45,6 +45,8 @@ namespace CddaOsmMaps.MapGen
         public readonly Size overmapSize;
         public Size OvermapSize { get => overmapSize; }
 
+        public readonly OvermapTerrainType[,] Overmap;
+
         public MapGenerator(IMapProvider mapProvider)
         {
             MapProvider = mapProvider;
@@ -53,6 +55,7 @@ namespace CddaOsmMaps.MapGen
                 (int)Math.Floor((double)MapProvider.MapSize.Height / CddaMap.OVERMAP_TILE_SIZE)
             );
             mapSize = overmapSize * CddaMap.OVERMAP_TILE_SIZE;
+            Overmap = new OvermapTerrainType[overmapSize.Width, overmapSize.Height];
         }
 
         public void Generate(string imgPath = "", bool log = false)
@@ -94,23 +97,42 @@ namespace CddaOsmMaps.MapGen
             Image.DisposeBuldingProperties();
         }
 
-        public TerrainType GetTerrain(Point pixelPos)
+        public TerrainType GetTerrain(Point tilePos)
         {
+            // TODO remove checking (map should be cropped to full overmap tiles) ?
             var isPixelInImg = (
-                0 <= pixelPos.X && pixelPos.X < MapSize.Width
-                && 0 <= pixelPos.Y && pixelPos.Y < MapSize.Height
+                0 <= tilePos.X && tilePos.X < MapSize.Width
+                && 0 <= tilePos.Y && tilePos.Y < MapSize.Height
             );
             if (!isPixelInImg)
             {
-                Console.WriteLine($"WARNING: pixel not in image: {pixelPos}, imgSize: {mapSize}");
+                Console.WriteLine($"WARNING: pixel not in image: {tilePos}, imgSize: {mapSize}");
                 return TerrainType.Default;
             }
-            var pixelColor = Image.GetPixelColor(pixelPos);
+            var pixelColor = Image.GetPixelColor(tilePos);
             if (TERRAIN_TYPES_BY_COLOR.TryGetValue(pixelColor, out var terrainType))
                 return terrainType;
 
             return TerrainType.Default;
         }
+
+        public OvermapTerrainType GetOvermapTerrain(Point overmapTilePos)
+        {
+            // reversed x <-> y
+            var overmapX = overmapTilePos.Y;
+            var overmapY = overmapTilePos.X;
+
+            // check neede because only full overmap regions can be generated
+            var isPositionInBounds = (
+                0 <= overmapX && overmapX < OvermapSize.Width
+                && 0 <= overmapY && overmapY < OvermapSize.Height
+            );
+
+            return isPositionInBounds
+                ? Overmap[overmapX, overmapY]
+                : OvermapTerrainType.Default;
+        }
+
 
         private void GenerateCoastlines(List<Coastline> coastlines)
         {
@@ -153,7 +175,9 @@ namespace CddaOsmMaps.MapGen
                         continue;
 
                     coastlineAreas.Add(GetCoastlineArea(
-                        coastlineAreaIdxByTile, coastlineAreaIdx, point
+                        coastlineAreaIdxByTile,
+                        coastlineAreaIdx,
+                        point
                     ));
                     coastlineAreaIdx++;
                 }
@@ -162,18 +186,39 @@ namespace CddaOsmMaps.MapGen
                 .Select(ca => ca?.IsWater() ?? false)
                 .ToArray();
 
+            var waterTilesInOvermapTile = new uint[OvermapSize.Width, OvermapSize.Height];
             for (int x = 0; x < MapSize.Width; x++)
                 for (int y = 0; y < MapSize.Height; y++)
                 {
                     var cAreaIdx = coastlineAreaIdxByTile[x, y];
                     if (cAreaIdx != NO_COASTLINE_AREA_IDX && coastlinieAreaIsWater[cAreaIdx])
+                    {
                         // TODO flip vertical with (MapSize.height - y - 1), is there a better way?
                         Image.DrawPixel(new Vector2(x, MapSize.Height - y - 1), COASTLINE_WATER_SIDE_COLOR);
+
+                        var overmapTile = GetOvermapTile(new Point(x, y));
+                        waterTilesInOvermapTile[overmapTile.X, overmapTile.Y]++;
+                    }
                 }
+
+            var overmapTiles = Math.Pow(CddaMap.OVERMAP_TILE_SIZE, 2);
+            var minWaterTilesForWaterOvermapTile = overmapTiles / 2;
+
+            for (int x = 0; x < OvermapSize.Width; x++)
+                for (int y = 0; y < OvermapSize.Height; y++)
+                    if (waterTilesInOvermapTile[x, y] == overmapTiles)
+                        // set overmap tile as 100% water (to avoid rendering overmap tile file)
+                        Overmap[x, y] = OvermapTerrainType.Water100Percent;
+
+                    else if (waterTilesInOvermapTile[x, y] >= minWaterTilesForWaterOvermapTile)
+                        // set overmap tile as partial water (to force rendering overmap tile file)
+                        Overmap[x, y] = OvermapTerrainType.Water;
         }
 
         private CoastlineArea GetCoastlineArea(
-            uint[,] coastlineAreaIdxByTile, uint idx, Point initialPoint
+            uint[,] coastlineAreaIdxByTile,
+            uint idx,
+            Point initialPoint
         )
         {
             var coastlineArea = new CoastlineArea(initialPoint);
@@ -201,11 +246,6 @@ namespace CddaOsmMaps.MapGen
                         coastlineAreaIdxByTile[adjPoint.X, adjPoint.Y] = idx;
                         pointsStack.Enqueue(adjPoint);
                     }
-                    else if (adjacentPixelColor == COASTLINE_BORDER_COLOR)
-                    {
-                        coastlineAreaIdxByTile[adjPoint.X, adjPoint.Y] = NO_COASTLINE_AREA_IDX;
-                        coastlineArea.AdjacentLandBorderPixels++;
-                    }
                     else if (adjacentPixelColor == COASTLINE_WATER_SIDE_COLOR)
                     {
                         // ... same as:
@@ -214,11 +254,22 @@ namespace CddaOsmMaps.MapGen
                         coastlineAreaIdxByTile[adjPoint.X, adjPoint.Y] = NO_COASTLINE_AREA_IDX;
                         coastlineArea.AdjacentWaterBorderPixels++;
                     }
+                    else if (adjacentPixelColor == COASTLINE_BORDER_COLOR)
+                    {
+                        coastlineAreaIdxByTile[adjPoint.X, adjPoint.Y] = NO_COASTLINE_AREA_IDX;
+                        coastlineArea.AdjacentLandBorderPixels++;
+                    }
                 }
             }
 
             return coastlineArea;
         }
+
+        private static Point GetOvermapTile(Point adjPoint)
+            => new Point(
+                adjPoint.X / CddaMap.OVERMAP_TILE_SIZE,
+                adjPoint.Y / CddaMap.OVERMAP_TILE_SIZE
+            );
 
         private void GenerateLandArea(LandArea landArea)
             => Image.DrawComplexArea(landArea.Polygons, landArea.FillColor);

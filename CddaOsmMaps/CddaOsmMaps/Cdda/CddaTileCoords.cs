@@ -61,7 +61,7 @@ namespace CddaOsmMaps.Cdda
             // ABSOLUTE OVERMAP TILE (4x SUBMAP) FILE
             // relOvermapTile + segment * 32
             static int toOvermapTileFile(int relOvermapTile, int segment)
-                => (int)Math.Floor((double)relOvermapTile + (segment * CddaMap.OVERMAP_TILES_PER_SEGMENT));
+                => (int)Math.Floor((double)relOvermapTile + (segment * CddaMap.SEGMENT_SIZE_IN_OVERMAP_TILES));
 
             var overmapTile = (
                 x: toOvermapTileFile(overmapTileInSegment.x, segment.x),
@@ -72,7 +72,7 @@ namespace CddaOsmMaps.Cdda
             // floor(relposInSegment / 12)
             static int toSubmapIdxInOvermapTile(int relposInSegment, int overmapTile)
                 => (int)Math.Floor((double)relposInSegment / CddaMap.SUBMAP_SIZE)
-                    - (2 * MathExt.MathMod(overmapTile, CddaMap.OVERMAP_TILES_PER_SEGMENT));
+                    - (2 * MathExt.MathMod(overmapTile, CddaMap.SEGMENT_SIZE_IN_OVERMAP_TILES));
 
             var submapIdxInOvermapTile = (
                 x: toSubmapIdxInOvermapTile(posInSegment.x, overmapTile.x),

@@ -1,6 +1,5 @@
 ﻿using CddaOsmMaps.Crosscutting;
 using CddaOsmMaps.MapGen.Contracts;
-using CddaOsmMaps.MapGen.Entities;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -8,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Text.RegularExpressions;
 
 namespace CddaOsmMaps.Cdda
 {
@@ -17,15 +17,12 @@ namespace CddaOsmMaps.Cdda
         private const string CDDA_SAVE_SEGMENTS_FOLDER = "maps";
         private const string MAIN_SAVE_FILE_EXT = ".sav";
         private const string OVERMAP_TILE_FILE_EXT = ".map";
+        private const string MAP_MEMORY_FILE_EXT = ".mm";
+
         private const int SAVE_VERSION = 33;
         private readonly string SAVE_VERSION_HEADER = $"# version {SAVE_VERSION}\n";
 
-        private const string SEEN_0_0_FILE_EXT = ".seen.0.0";
-        private const int EMPTY_SEEN_DATA_COUNT = 21;
-
-        private const string MAP_MEMORY_FILE_EXT = ".mm";
-        private const string O_0_0_FILE = "o.0.0";
-
+        // main save file {saveId}.sav
         private const string OVERTILE_REGION_X_KEY = "om_x";
         private const string OVERTILE_REGION_Y_KEY = "om_y";
         private const string LEVX_KEY = "levx";
@@ -36,27 +33,17 @@ namespace CddaOsmMaps.Cdda
         private const string ACTIVE_MONSTERS_KEY = "active_monsters";
         private const string STAIR_MONSTERS_KEY = "stair_monsters";
 
-        private readonly bool Log;
+        private const string OVERMAP_REGION_FILE_REGION_ID_VALUE = "default";
 
-        private readonly Dictionary<TerrainType, string> TILE_PER_TERRAIN =
-            new Dictionary<TerrainType, string>
-            {
-                { TerrainType.Default,       "t_grass" },
-                { TerrainType.DeepMovWater,  "t_water_moving_dp" },
-                { TerrainType.Pavement,      "t_pavement" },
-                { TerrainType.ConcreteFloor, "t_concrete" },
-                { TerrainType.DirtFloor,     "t_dirt" },
-                { TerrainType.Wall,          "t_concrete_wall" },
-                { TerrainType.HouseFloor,    "t_thconc_floor" },
-                { TerrainType.Grass,         "t_grass" },
-                { TerrainType.GrassLong,     "t_grass_long" },
-                { TerrainType.Sidewalk,      "t_sidewalk" },
-            };
+        private readonly bool Log;
 
         private readonly string SavePath;
         private readonly string SaveId;
         private readonly IMapGenerator MapGen;
+
         private Point MapTopLeftAbsPos;
+        private CddaTileCoords MapTopLeftCoords;
+        private CddaTileCoords MapBotRghtCoords;
 
         public CddaGenerator(
             IMapGenerator mapGen,
@@ -73,9 +60,9 @@ namespace CddaOsmMaps.Cdda
 
         public void Generate(Point? spawnAbsPos)
         {
-            SetMapTopLeftAbsPos();
+            SetMapCornersData();
             WriteMapSegmenFiles();
-            WriteSeen00();
+            WriteSeenOvermapFiles();
             WriteOvermapFiles();
             WriteMapMemory();
 
@@ -84,7 +71,7 @@ namespace CddaOsmMaps.Cdda
             WriteSegments();
         }
 
-        private void SetMapTopLeftAbsPos()
+        private void SetMapCornersData()
         {
             static float toMapSizeInOvermapTileUnits(int mapSize)
                 => (float)mapSize / CddaMap.OVERMAP_TILE_SIZE;
@@ -111,8 +98,8 @@ namespace CddaOsmMaps.Cdda
             var mapCenterInRegionUnits = mapSizeInWholeRegionUnits / 2;
 
             var mapCenterAbsPos = (
-                x: (int)mapCenterInRegionUnits.X * CddaMap.OVERMAP_REGION_SIZE,
-                y: (int)mapCenterInRegionUnits.Y * CddaMap.OVERMAP_REGION_SIZE
+                x: (int)(mapCenterInRegionUnits.X * CddaMap.OVERMAP_REGION_SIZE),
+                y: (int)(mapCenterInRegionUnits.Y * CddaMap.OVERMAP_REGION_SIZE)
             );
 
             static int toMapTopLeftAbsPos(
@@ -134,6 +121,12 @@ namespace CddaOsmMaps.Cdda
                     mapCenterAbsPos.x,
                     MapGen.MapSize.Width
                 ));
+
+            MapTopLeftCoords = new CddaTileCoords(GetAbsPosFromRelMapPos(new Point(0, 0)));
+
+            MapBotRghtCoords = new CddaTileCoords(GetAbsPosFromRelMapPos(
+                new Point(MapGen.MapSize.Width - 1, MapGen.MapSize.Height - 1)
+            ));
         }
 
         private CddaPlayerCoords GetSpawnCoords(Point? spawnAbsPos)
@@ -165,65 +158,6 @@ namespace CddaOsmMaps.Cdda
                 Directory.Delete(segmentsFolder, recursive: true);
 
             Directory.CreateDirectory(segmentsFolder);
-        }
-
-        private void WriteSeen00()
-        {
-            var allFalseArray = new object[] { new object[] { false, 32400 } };
-            var allFalseArrays = Enumerable
-                .Repeat(allFalseArray, EMPTY_SEEN_DATA_COUNT);
-
-            var emptyArray = Array.Empty<int>();
-            var emptyArrays = Enumerable
-                .Repeat(emptyArray, EMPTY_SEEN_DATA_COUNT);
-
-            var emptySeen00 = new
-            {
-                visible = allFalseArrays,
-                explored = allFalseArrays,
-                notes = emptyArrays,
-                extras = emptyArrays
-            };
-
-            JsonIO.WriteJson<dynamic>(
-                Path.Combine(SavePath, $"{SaveId}{SEEN_0_0_FILE_EXT}"),
-                emptySeen00,
-                header: SAVE_VERSION_HEADER
-            );
-        }
-
-        private void WriteOvermapFiles()
-        {
-            var emptyRockArray = new object[] { new object[] { "empty_rock", 32400 } };
-            var fieldArray = new object[] { new object[] { "field", 32400 } };
-            var openAirArray = new object[] { new object[] { "open_air", 32400 } };
-
-            var layers = Enumerable.Repeat(emptyRockArray, 10)
-                .Concat(new object[] { fieldArray })
-                .Concat(Enumerable.Repeat(openAirArray, 10));
-
-            var emptyArray = Array.Empty<int>();
-            var emptyO00 = new
-            {
-                layers,
-                region_id = "default",
-                monster_groups = emptyArray,
-                cities = emptyArray,
-                connections_out = new { },
-                radios = emptyArray,
-                monster_map = emptyArray,
-                tracked_vehicles = emptyArray,
-                scent_traces = emptyArray,
-                npcs = emptyArray,
-                camps = emptyArray,
-                overmap_special_placements = emptyArray,
-            };
-
-            JsonIO.WriteJson<dynamic>(
-                Path.Combine(SavePath, O_0_0_FILE),
-                emptyO00,
-                header: SAVE_VERSION_HEADER
-            );
         }
 
         private void WriteMapMemory()
@@ -267,5 +201,54 @@ namespace CddaOsmMaps.Cdda
                 relpos.X + MapTopLeftAbsPos.X,
                 relpos.Y + MapTopLeftAbsPos.Y
             );
+
+        private static object[] SimplifyTiles(
+            List<string> tiles,
+            Action<List<object>, (string tile, int count)> processTerrainInTileFn
+        )
+        {
+            var simplified = new List<object>();
+            var tmpTileInfo = (
+                tile: tiles[0],
+                count: 1
+            );
+            foreach (var tile in tiles.Skip(1))
+                if (tile == tmpTileInfo.tile)
+                    tmpTileInfo.count++;
+                else
+                {
+                    processTerrainInTileFn(simplified, tmpTileInfo);
+                    tmpTileInfo = (tile, 1);
+                }
+
+            processTerrainInTileFn(simplified, tmpTileInfo);
+
+            return simplified.ToArray();
+        }
+
+        private static void ProcessTile(
+            List<object> simplified,
+            (string tile, int count) tmpTileInfo,
+            bool singleTileAsArray
+        )
+        {
+            var isArrayValue = (singleTileAsArray || tmpTileInfo.count > 1);
+
+            simplified.Add(
+                isArrayValue
+                    ? new object[] { tmpTileInfo.tile, tmpTileInfo.count }
+                    : (object)tmpTileInfo.tile
+            );
+        }
+
+        private void DeleteFiles(string wildcardPatter, Regex regexPattern)
+        {
+            var savePathDir = new DirectoryInfo(SavePath);
+            savePathDir
+                .EnumerateFiles(wildcardPatter)
+                .Where(f => regexPattern.IsMatch(f.Name))
+                .ToList()
+                .ForEach(file => file.Delete());
+        }
     }
 }
