@@ -22,7 +22,7 @@ namespace CddaOsmMaps.MapGen.Entities
 
         private static Polygon CoastlineToRightSidePolygon(Polygon polygon)
         {
-            var extraPoints = new List<(float x, float y)>();
+            var extraPoints = new List<Vector2>();
             for (var i = 0; i < polygon.Count; i++)
             {
                 if (i == 0)
@@ -34,13 +34,13 @@ namespace CddaOsmMaps.MapGen.Entities
                 else
                 {
                     var currentPoint = polygon[i];
-                    var currentVector = new Vector2(currentPoint.x, currentPoint.y);
+                    var currentVector = new Vector2(currentPoint.X, currentPoint.Y);
 
                     var nextDisplacedPoint = GetNextDisplacedPoint(polygon, i);
-                    var nextDisplacedPointVector = new Vector2(nextDisplacedPoint.x, nextDisplacedPoint.y);
+                    var nextDisplacedPointVector = new Vector2(nextDisplacedPoint.X, nextDisplacedPoint.Y);
 
                     var prevDisplacedPoint = GetPrevDisplacedPoint(polygon, i);
-                    var prevDisplacedPointVector = new Vector2(prevDisplacedPoint.x, prevDisplacedPoint.y);
+                    var prevDisplacedPointVector = new Vector2(prevDisplacedPoint.X, prevDisplacedPoint.Y);
 
                     var finalDisplacement =
                         (nextDisplacedPointVector - currentVector)
@@ -59,7 +59,7 @@ namespace CddaOsmMaps.MapGen.Entities
 
                     var finalDisplacedPoint = currentVector + (SIDE_INDICATOR_WIDTH * finalDisplacementNorm);
 
-                    extraPoints.Add((finalDisplacedPoint.X, finalDisplacedPoint.Y));
+                    extraPoints.Add(new Vector2(finalDisplacedPoint.X, finalDisplacedPoint.Y));
                 }
             }
 
@@ -68,7 +68,7 @@ namespace CddaOsmMaps.MapGen.Entities
             return new Polygon(polygon.Concat(extraPoints));
         }
 
-        private static (float x, float y) GetNextDisplacedPoint(
+        private static Vector2 GetNextDisplacedPoint(
             Polygon polygon,
             int idx
         ) => GetDisplacedPoint(
@@ -78,7 +78,7 @@ namespace CddaOsmMaps.MapGen.Entities
             rotateAngle: -90
         );
 
-        private static (float x, float y) GetPrevDisplacedPoint(
+        private static Vector2 GetPrevDisplacedPoint(
             Polygon polygon,
             int idx
         ) => GetDisplacedPoint(
@@ -88,7 +88,7 @@ namespace CddaOsmMaps.MapGen.Entities
             rotateAngle: 90
         );
 
-        private static (float x, float y) GetDisplacedPoint(
+        private static Vector2 GetDisplacedPoint(
             Polygon polygon,
             int idx,
             int idxSecondPointDelta,
@@ -101,9 +101,9 @@ namespace CddaOsmMaps.MapGen.Entities
                 Geom.GetAngle(currentPoint, prevPoint) + rotateAngle
             );
 
-            return (
-                (float)(currentPoint.x + SIDE_INDICATOR_WIDTH * Math.Cos(angle)),
-                (float)(currentPoint.y + SIDE_INDICATOR_WIDTH * Math.Sin(angle))
+            return new Vector2(
+                (float)(currentPoint.X + SIDE_INDICATOR_WIDTH * Math.Cos(angle)),
+                (float)(currentPoint.Y + SIDE_INDICATOR_WIDTH * Math.Sin(angle))
             );
         }
     }

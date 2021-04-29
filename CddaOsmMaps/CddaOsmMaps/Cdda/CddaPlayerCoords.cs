@@ -1,16 +1,17 @@
 ﻿using CddaOsmMaps.Crosscutting;
 using System;
+using System.Drawing;
 
 namespace CddaOsmMaps.Cdda
 {
     public class CddaPlayerCoords
     {
-        public (int x, int y) Abspos { get; private set; }
-        public Point3D OvermapRegion { get; private set; }
-        public Point3D SavegameLev { get; private set; }
-        public Point3D SavegamePos { get; private set; }
+        public Point Abspos { get; private set; }
+        public Point3DInt OvermapRegion { get; private set; }
+        public Point3DInt SavegameLev { get; private set; }
+        public Point3DInt SavegamePos { get; private set; }
 
-        public CddaPlayerCoords((int x, int y) abspos)
+        public CddaPlayerCoords(Point abspos)
         {
             // https://discourse.cataclysmdda.org/t/maps-coordinate-systems-and-files/24935/7
             // https://discourse.cataclysmdda.org/t/save-corruption-proble/23688/3
@@ -18,17 +19,21 @@ namespace CddaOsmMaps.Cdda
 
             Abspos = abspos;
 
-            var playerTileMinusRealityBubbleCoords = new CddaTileCoords((
-                abspos.x - CddaMap.REALITY_BUBBLE_RADIUS,
-                abspos.y - CddaMap.REALITY_BUBBLE_RADIUS
-            ));
+            var playerTileMinusRealityBubbleCoords = new CddaTileCoords(
+                new Point(
+                    abspos.X - CddaMap.REALITY_BUBBLE_RADIUS,
+                    abspos.Y - CddaMap.REALITY_BUBBLE_RADIUS
+                )
+            );
 
-            var realityBubbleTopLefCoords = new CddaTileCoords((
-                abspos.x - CddaMap.REALITY_BUBBLE_RADIUS
-                         - playerTileMinusRealityBubbleCoords.RelPosInSubmap.X,
-                abspos.y - CddaMap.REALITY_BUBBLE_RADIUS
-                         - playerTileMinusRealityBubbleCoords.RelPosInSubmap.Y
-            ));
+            var realityBubbleTopLefCoords = new CddaTileCoords(
+                new Point(
+                    abspos.X - CddaMap.REALITY_BUBBLE_RADIUS
+                             - playerTileMinusRealityBubbleCoords.RelPosInSubmap.X,
+                    abspos.Y - CddaMap.REALITY_BUBBLE_RADIUS
+                             - playerTileMinusRealityBubbleCoords.RelPosInSubmap.Y
+                )
+            );
 
             OvermapRegion = realityBubbleTopLefCoords.OvermapRegion;
 
@@ -40,7 +45,7 @@ namespace CddaOsmMaps.Cdda
                 CddaMap.SUBMAP_TILES_PER_REGION
             ) + realityBubbleTopLefSubmapIdx;
 
-            SavegameLev = new Point3D((
+            SavegameLev = new Point3DInt((
                 toSavegameLev(
                     realityBubbleTopLefCoords.OvermapTile.X,
                     realityBubbleTopLefCoords.SubmapIdx.X
@@ -51,7 +56,7 @@ namespace CddaOsmMaps.Cdda
                 )
             ));
 
-            SavegamePos = new Point3D((
+            SavegamePos = new Point3DInt((
                 CddaMap.REALITY_BUBBLE_RADIUS
                     + playerTileMinusRealityBubbleCoords.RelPosInSubmap.X,
                 CddaMap.REALITY_BUBBLE_RADIUS
@@ -66,10 +71,10 @@ namespace CddaOsmMaps.Cdda
             (int x, int y) savegamePos
         )
         {
-            Abspos = abspos;
-            OvermapRegion = new Point3D(overmapRegion);
-            SavegameLev = new Point3D(savegameLev);
-            SavegamePos = new Point3D(savegamePos);
+            Abspos = new Point(abspos.x, abspos.y);
+            OvermapRegion = new Point3DInt(overmapRegion);
+            SavegameLev = new Point3DInt(savegameLev);
+            SavegamePos = new Point3DInt(savegamePos);
         }
 
         public static bool operator ==(CddaPlayerCoords left, CddaPlayerCoords right)

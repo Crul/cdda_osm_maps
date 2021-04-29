@@ -1,8 +1,8 @@
-﻿using CddaOsmMaps.Crosscutting;
-using OsmSharp.API;
+﻿using OsmSharp.API;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace CddaOsmMaps.Args
 {
@@ -50,10 +50,10 @@ namespace CddaOsmMaps.Args
             return isValid;
         }
 
-        public PointFloat GetSpawnPoint()
+        public Vector2? GetSpawnPoint()
             => SpawnPoint?.Length == 2
-                ? new PointFloat(SpawnPoint[0], SpawnPoint[1])
-                : null;
+                ? new Vector2(SpawnPoint[0], SpawnPoint[1])
+                : (Vector2?)null;
 
         public Bounds GetBounds()
             => GisBounds == null
@@ -74,7 +74,7 @@ namespace CddaOsmMaps.Args
         )
         {
             if (array == null)
-                return (VALID_VALUES_COUNTS.Contains(0));
+                return VALID_VALUES_COUNTS.Contains(0);
 
             var arrayValueCount = array.Length;
             if (VALID_VALUES_COUNTS.Contains(arrayValueCount))

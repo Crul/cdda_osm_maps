@@ -1,12 +1,14 @@
-﻿namespace CddaOsmMaps.MapGen.Entities
+﻿using System.Drawing;
+
+namespace CddaOsmMaps.MapGen.Entities
 {
     internal class CoastlineArea
     {
-        public (int x, int y) InitialPoint { get; private set; }
+        public Point InitialPoint { get; private set; }
         public int AdjacentLandBorderPixels { get; set; }
         public int AdjacentWaterBorderPixels { get; set; }
 
-        public CoastlineArea(int x, int y) => InitialPoint = (x, y);
+        public CoastlineArea(Point initialPoint) => InitialPoint = initialPoint;
 
         public bool IsWater()
             // TODO ?? review

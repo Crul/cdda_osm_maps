@@ -1,12 +1,13 @@
 ﻿using CddaOsmMaps.MapGen.Entities;
+using System.Drawing;
 
 namespace CddaOsmMaps.MapGen.Contracts
 {
     internal interface IMapGenerator
     {
-        (int width, int height) OvermapSize { get; }
-        (int width, int height) MapSize { get; }
+        Size OvermapSize { get; }
+        Size MapSize { get; }
 
-        TerrainType GetTerrain((int x, int y) pixelPos);
+        TerrainType GetTerrain(Point pixelPos);
     }
 }

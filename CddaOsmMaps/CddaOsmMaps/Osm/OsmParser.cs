@@ -9,8 +9,10 @@ using OsmSharp.Streams;
 using OsmSharp.Tags;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 
 namespace CddaOsmMaps.Osm
@@ -53,7 +55,7 @@ namespace CddaOsmMaps.Osm
         private readonly (float lat, float lon) Scales;
         private readonly bool Log;
 
-        public (int width, int height) MapSize { get; private set; }
+        public Size MapSize { get; private set; }
         public float PixelsPerMeter { get; private set; }
 
         public OsmReader(
@@ -80,7 +82,7 @@ namespace CddaOsmMaps.Osm
                 lon: Bounds.MaxLongitude - Bounds.MinLongitude ?? 0
             );
             var mapSize = Scale(boundSizes);
-            MapSize = ((int)mapSize.lon, (int)mapSize.lat); // reversed lat <-> lon
+            MapSize = new Size((int)mapSize.Y, (int)mapSize.X); // reversed X (lat) <-> Y (lon)
         }
 
         public MapElements GetMapElements()
@@ -385,31 +387,19 @@ namespace CddaOsmMaps.Osm
                         way.Tags.Add(tag);
         }
 
-        public PointFloat Scale(PointFloat point)
-        {
-            if (point != null)
-            {
-                var (x, y) = LatLonToXY((point.X, point.Y));
-                point.X = x;
-                point.Y = y;
-            }
-
-            return point;
-        }
-
-        private (float lat, float lon) Scale((float lat, float lon) coords)
-            => (
-                lat: Scales.lat * coords.lat,
-                lon: Scales.lon * coords.lon
-            );
-
-        private (float x, float y) LatLonToXY(Node node)
-            => LatLonToXY(((float)node.Latitude, (float)node.Longitude));
-
-        private (float x, float y) LatLonToXY((float lat, float lon) coords)
+        public Vector2 LatLonToXY(Vector2 coords)
             => Scale((
-                coords.lat - Bounds.MinLatitude ?? 0,
-                coords.lon - Bounds.MinLongitude ?? 0
+                coords.X - Bounds.MinLatitude ?? 0,
+                coords.Y - Bounds.MinLongitude ?? 0
             ));
+
+        private Vector2 LatLonToXY(Node node)
+            => LatLonToXY(new Vector2((float)node.Latitude, (float)node.Longitude));
+
+        private Vector2 Scale((float lat, float lon) coords)
+            => new Vector2(
+                Scales.lat * coords.lat,
+                Scales.lon * coords.lon
+            );
     }
 }

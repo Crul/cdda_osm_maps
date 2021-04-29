@@ -5,12 +5,12 @@ using OsmSharp.Tags;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace CddaOsmMaps.Osm
 {
     internal class ComplexWay
     {
-
         public List<CompleteWayInfo> WayInfos { get; private set; }
 
         private readonly TagsCollection Tags;
@@ -39,7 +39,7 @@ namespace CddaOsmMaps.Osm
         { }
 
         public (List<Polygon> polygons, TagsCollection tags) GetData(
-            Func<Node, (float lat, float lon)> scaleFn
+            Func<Node, Vector2> scaleFn
         ) => (
                 WayInfos.Select(wayInfo =>
                     new Polygon(

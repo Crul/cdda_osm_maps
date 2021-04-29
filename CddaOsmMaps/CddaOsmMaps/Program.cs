@@ -1,8 +1,8 @@
 ﻿using CddaOsmMaps.Args;
 using CddaOsmMaps.Cdda;
-using CddaOsmMaps.Crosscutting;
 using CddaOsmMaps.MapGen;
 using CddaOsmMaps.Osm;
+using System.Drawing;
 
 namespace CddaOsmMaps
 {
@@ -39,21 +39,19 @@ namespace CddaOsmMaps
             cddaGenerator.Generate(spawnPoint);
         }
 
-        private static PointFloat GetSpawnPoint(ParsedArgs args, OsmReader osmReader)
+        private static Point? GetSpawnPoint(ParsedArgs args, OsmReader osmReader)
         {
             var spawnPoint = args.GetSpawnPoint();
-            if (spawnPoint != null)
-            {
-                spawnPoint = osmReader.Scale(spawnPoint);
-                // reversed x <-> and y = height - y
-                (spawnPoint.X, spawnPoint.Y) =
-                (
-                    spawnPoint.Y,
-                    osmReader.MapSize.height - spawnPoint.X
-                );
-            }
+            if (!spawnPoint.HasValue)
+                return null;
 
-            return spawnPoint;
+            spawnPoint = osmReader.LatLonToXY(spawnPoint.Value);
+
+            return new Point(
+                // reversed x <-> and y = height - y
+                (int)spawnPoint.Value.Y,
+                (int)(osmReader.MapSize.Height - spawnPoint.Value.X)
+            );
         }
     }
 }

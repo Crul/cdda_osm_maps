@@ -1,5 +1,6 @@
 using CddaOsmMaps.Cdda;
 using System.Collections.Generic;
+using System.Drawing;
 using Xunit;
 
 namespace CddaOsmMaps_XUnit
@@ -8,7 +9,7 @@ namespace CddaOsmMaps_XUnit
     {
         [Theory]
         [MemberData(nameof(TestCddaPlayerCoordData))]
-        public void TestCddaPlayerCoord((int x, int y) abspos, CddaPlayerCoords expected)
+        public void TestCddaPlayerCoord(Point abspos, CddaPlayerCoords expected)
         {
             var result = new CddaPlayerCoords(abspos);
 
@@ -63,12 +64,12 @@ namespace CddaOsmMaps_XUnit
             };
 
         private static object[] ExpectedCddaPlayerCoord(
-            (int, int) abspos,
+            (int x, int y) abspos,
             (int, int) overmapRegion,
             (int, int) savegameLev,
             (int, int) savegamePos
         ) => new object[] {
-            abspos,
+            new Point(abspos.x, abspos.y),
             new CddaPlayerCoords(
                 abspos,
                 overmapRegion,

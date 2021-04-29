@@ -13,8 +13,7 @@
     <Compile Include=".Crosscutting\ImageBuilder.cs" />
     <Compile Include=".Crosscutting\JsonIO.cs" />
     <Compile Include=".Crosscutting\MathExt.cs" />
-    <Compile Include=".Crosscutting\Point3D.cs" />
-    <Compile Include=".Crosscutting\PointFloat.cs" />
+    <Compile Include=".Crosscutting\Point3DInt.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,23 +5,24 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace CddaOsmMaps.Crosscutting
 {
     internal class ImageBuilder : IDisposable
     {
-        public (int width, int height) Size { get; private set; }
+        public Size Size { get; private set; }
 
         private readonly SKSurface Surface;
         private readonly SKCanvas Canvas;
         private readonly SKPaint Paint;
         private SKBitmap Bitmap;
 
-        public ImageBuilder((int width, int height) size, SKColor? bgrColor = null)
+        public ImageBuilder(Size size, SKColor? bgrColor = null)
         {
             Size = size;
-            var info = new SKImageInfo(size.width, size.height);
+            var info = new SKImageInfo(size.Width, size.Height);
             Surface = SKSurface.Create(info);
             Canvas = Surface.Canvas;
             FlipCanvasVertical();
@@ -50,24 +51,21 @@ namespace CddaOsmMaps.Crosscutting
             => Bitmap = SKBitmap.FromImage(Surface.Snapshot());
 
         private void FlipCanvasVertical()
-            => Canvas.Scale(1, -1, Size.width / 2, Size.height / 2);
+            => Canvas.Scale(1, -1, Size.Width / 2, Size.Height / 2);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public SKColor GetPixelSKColor((int x, int y) pixelPos)
-            => Bitmap.GetPixel(pixelPos.x, pixelPos.y);
+        public SKColor GetPixelSKColor(Point pixelPos)
+            => Bitmap.GetPixel(pixelPos.X, pixelPos.Y);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Color GetPixelColor((int x, int y) pixelPos)
+        public Color GetPixelColor(Point pixelPos)
             => GetPixelSKColor(pixelPos).ToColor();
 
-        public void DrawPixel(
-            (float x, float y) point,
-            SKColor fillColor
-        )
+        public void DrawPixel(Vector2 point, SKColor fillColor)
         {
             Paint.Style = SKPaintStyle.Fill;
             Paint.Color = fillColor;
-            Canvas.DrawRect(point.x, point.y, 1, 1, Paint);
+            Canvas.DrawRect(point.X, point.Y, 1, 1, Paint);
         }
 
         public void DrawComplexPath(
@@ -137,8 +135,8 @@ namespace CddaOsmMaps.Crosscutting
             return path;
         }
 
-        private static SKPoint ToSKPoint((float x, float y) point)
-            => new SKPoint(point.y, point.x);  // reversed x <-> y
+        private static SKPoint ToSKPoint(Vector2 point)
+            => new SKPoint(point.Y, point.X);  // reversed x <-> y
 
         public void Dispose()
         {
