@@ -19,10 +19,13 @@ namespace CddaOsmMaps.Crosscutting
         private readonly SKPaint Paint;
         private SKBitmap Bitmap;
 
-        public ImageBuilder(Size size, SKColor? bgrColor = null)
+        public ImageBuilder(Size size, SKColor? bgrColor = null, bool log = false)
         {
             Size = size;
             var info = new SKImageInfo(size.Width, size.Height);
+            if (log)
+                Console.WriteLine($"Image Size: {info.Size}");
+
             Surface = SKSurface.Create(info);
             Canvas = Surface.Canvas;
             FlipCanvasVertical();

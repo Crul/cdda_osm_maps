@@ -24,7 +24,7 @@ namespace CddaOsmMaps
             );
 
             var mapGen = new MapGenerator(osmReader);
-            mapGen.Generate(imgPath: args.ImageFilePath);
+            mapGen.Generate(imgPath: args.ImageFilePath, args.Verbose);
 
             if (string.IsNullOrEmpty(args.SaveGame))
                 return;

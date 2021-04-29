@@ -55,10 +55,10 @@ namespace CddaOsmMaps.MapGen
             mapSize = overmapSize * CddaMap.OVERMAP_TILE_SIZE;
         }
 
-        public void Generate(string imgPath = "")
+        public void Generate(string imgPath = "", bool log = false)
         {
             var mapElements = MapProvider.GetMapElements();
-            Image = new ImageBuilder(MapSize, EMPTY_AREA_COLOR);
+            Image = new ImageBuilder(MapSize, EMPTY_AREA_COLOR, log);
 
             var coastLines = mapElements.Coastlines.ToList();
             if (coastLines.Count > 0)
