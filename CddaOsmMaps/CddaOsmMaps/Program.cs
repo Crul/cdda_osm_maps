@@ -29,7 +29,12 @@ namespace CddaOsmMaps
             if (string.IsNullOrEmpty(args.SaveGame))
                 return;
 
-            var cddaGenerator = new CddaGenerator(mapGen, args.CddaPath, args.SaveGame);
+            var cddaGenerator = new CddaGenerator(
+                mapGen,
+                args.CddaPath,
+                args.SaveGame,
+                args.Verbose
+            );
             var spawnPoint = GetSpawnPoint(args, osmReader);
             cddaGenerator.Generate(spawnPoint);
         }

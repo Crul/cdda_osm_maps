@@ -1,4 +1,5 @@
-﻿using CddaOsmMaps.Crosscutting;
+﻿using CddaOsmMaps.Cdda;
+using CddaOsmMaps.Crosscutting;
 using CddaOsmMaps.MapGen.Contracts;
 using CddaOsmMaps.MapGen.Entities;
 using SkiaSharp;
@@ -37,14 +38,29 @@ namespace CddaOsmMaps.MapGen
                 {  MapColors.GRASS_LONG_COLOR,      TerrainType.GrassLong },
             };
 
-        public (int width, int height) MapSize => MapProvider.MapSize;
+        public readonly (int width, int height) mapSize;
+        public (int width, int height) MapSize { get => mapSize; }
 
-        public MapGenerator(IMapProvider mapProvider) => MapProvider = mapProvider;
+        public readonly (int width, int height) overmapSize;
+        public (int width, int height) OvermapSize { get => overmapSize; }
+
+        public MapGenerator(IMapProvider mapProvider)
+        {
+            MapProvider = mapProvider;
+            overmapSize = (
+                (int)Math.Floor((double)MapProvider.MapSize.width / CddaMap.OVERMAP_TILE_SIZE),
+                (int)Math.Floor((double)MapProvider.MapSize.height / CddaMap.OVERMAP_TILE_SIZE)
+            );
+            mapSize = ( // to generate only full overmap tiles
+                overmapSize.width * CddaMap.OVERMAP_TILE_SIZE,
+                overmapSize.height * CddaMap.OVERMAP_TILE_SIZE
+            );
+        }
 
         public void Generate(string imgPath = "")
         {
             var mapElements = MapProvider.GetMapElements();
-            Image = new ImageBuilder(MapProvider.MapSize, EMPTY_AREA_COLOR);
+            Image = new ImageBuilder(MapSize, EMPTY_AREA_COLOR);
 
             var coastLines = mapElements.Coastlines.ToList();
             if (coastLines.Count > 0)
@@ -87,8 +103,10 @@ namespace CddaOsmMaps.MapGen
                 && 0 <= pixelPos.y && pixelPos.y < MapSize.height
             );
             if (!isPixelInImg)
+            {
+                Console.WriteLine($"WARNING: pixel not in image: {pixelPos}, imgSize: {mapSize}");
                 return TerrainType.Default;
-
+            }
             var pixelColor = Image.GetPixelColor(pixelPos);
             if (TERRAIN_TYPES_BY_COLOR.TryGetValue(pixelColor, out var terrainType))
                 return terrainType;

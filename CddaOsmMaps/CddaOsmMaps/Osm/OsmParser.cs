@@ -64,7 +64,7 @@ namespace CddaOsmMaps.Osm
         )
         {
             OsmXmlFilepath = osmXmlFilepath;
-            Bounds = bounds ?? GetBounds();
+            Bounds = bounds ?? GetBoundsFromXml();
             PixelsPerMeter = pixelsPerMeter ?? DEFAULT_PIXELS_PER_METER;
             Log = log;
 
@@ -116,7 +116,7 @@ namespace CddaOsmMaps.Osm
             };
         }
 
-        private Bounds GetBounds()
+        private Bounds GetBoundsFromXml()
         {
             using var fileStream = new StreamReader(OsmXmlFilepath);
             string line;
