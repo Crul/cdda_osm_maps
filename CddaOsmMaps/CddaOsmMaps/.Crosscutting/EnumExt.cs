@@ -8,7 +8,7 @@ namespace CddaOsmMaps.Crosscutting
         public static IEnumerable<int> Range(int count)
             => Enumerable.Range(0, count);
 
-        public static IEnumerable<int> RangeCount(int from, int count)
-            => Enumerable.Range(from, (count - from) + 1);
+        public static IEnumerable<int> RangeFromTo(int from, int to)
+            => Enumerable.Range(from, (to - from) + 1);
     }
 }
