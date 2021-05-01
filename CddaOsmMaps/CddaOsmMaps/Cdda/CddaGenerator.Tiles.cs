@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 
 namespace CddaOsmMaps.Cdda
 {
@@ -162,24 +161,14 @@ namespace CddaOsmMaps.Cdda
                     var terrainType = terrainTypes[x, y];
                     terrain.Add(TILE_PER_TERRAIN[terrainType]);
 
-                    var isMonsterAllowed = MONSTER_ALLOWED_TERRAIN_TYPES.Contains(terrainType);
-                    if (!isMonsterAllowed)
-                        continue;
-
-                    var isPlayerSpawnTile = (
-                        // TODO spawn monster in player tile check should take OvermapRegion into account (minor issue)
-                        PlayerSpawnTileCoords.RelPosInSubmap.X == x
-                        && PlayerSpawnTileCoords.RelPosInSubmap.Y == y
-                        && PlayerSpawnTileCoords.OvermapTile.X == overmapTileFile.X
-                        && PlayerSpawnTileCoords.OvermapTile.Y == overmapTileFile.Y
-                        && PlayerSpawnTileCoords.SubmapIdx.X == submapIdx.X
-                        && PlayerSpawnTileCoords.SubmapIdx.Y == submapIdx.Y
+                    SpawnMonster(
+                        monsters,
+                        terrainType,
+                        overmapTileFile,
+                        submapIdx,
+                        x,
+                        y
                     );
-
-                    if (isPlayerSpawnTile)
-                        continue;
-
-                    SpawnMonster(monsters, x, y);
                 }
 
             var simplifiedTerrain = SimplifyTerrain(terrain);
@@ -203,24 +192,6 @@ namespace CddaOsmMaps.Cdda
             };
 
             return submap;
-        }
-
-        private static void SpawnMonster(List<object> monsters, int x, int y)
-        {
-            if (monsters.Count == 0)
-                monsters.Add(
-                    new List<object>()
-                    {
-                        "mon_zombie_brainless",
-                        1, // count
-                        x, // posx
-                        y, // posy
-                        -1, // faction_id
-                        -1, // mission_id
-                        false, // friendly
-                        "NONE", // name
-                    }
-                );
         }
 
         private TerrainType[,] GetSubmapTerrain(Point overmapTileFile, Point submapIdx)
