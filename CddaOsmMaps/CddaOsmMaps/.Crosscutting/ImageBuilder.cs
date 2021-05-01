@@ -83,11 +83,44 @@ namespace CddaOsmMaps.Crosscutting
             float width
         )
         {
-            Paint.Style = SKPaintStyle.Stroke;
-            Paint.Color = color;
-            Paint.StrokeWidth = width;
-
+            SetStrokePaint(color, width);
             DrawPolygons(polygons);
+        }
+
+        public void DrawComplexPath(
+            List<Polygon> polygons,
+            Color color,
+            List<float[]> polygonSegmentsWidth
+        )
+        {
+            SetStrokePaint(color.ToSKColor());
+            for (var i = 0; i < polygons.Count; i++)
+                DrawPolygonSegment(polygons[i], polygonSegmentsWidth[i]);
+        }
+
+        private void DrawPolygonSegment(
+            Polygon polygon,
+            float[] segmentsWidth
+        )
+        {
+            for (var i = 0; i < polygon.Count - 1; i++)
+            {
+                var segment = polygon.Skip(i).Take(2).ToList();
+                var path = GetPath(segment);
+
+                Paint.StrokeWidth = segmentsWidth[i];
+                Canvas.DrawPath(path, Paint);
+            }
+        }
+
+        public void SetStrokePaint(SKColor color, float? width = null)
+        {
+            Paint.Style = SKPaintStyle.Stroke;
+            // TODO variable width paths (for roads) require rounded ends for the joins
+            Paint.StrokeCap = SKStrokeCap.Round;
+            Paint.Color = color;
+            if (width.HasValue)
+                Paint.StrokeWidth = width.Value;
         }
 
         public void DrawComplexArea(
@@ -128,7 +161,7 @@ namespace CddaOsmMaps.Crosscutting
             return mainPath;
         }
 
-        private static SKPath GetPath(Polygon polygon)
+        private static SKPath GetPath(List<Vector2> polygon)
         {
             var path = new SKPath();
             path.MoveTo(ToSKPoint(polygon[0]));

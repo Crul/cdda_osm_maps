@@ -10,7 +10,7 @@ namespace CddaOsmMaps.Crosscutting
         {
             var xDiff = point1.X - point2.X;
             var yDiff = point1.Y - point2.Y;
-            var angle = MathExt.ToDegrees((float)Math.Atan2(yDiff, xDiff));
+            var angle = (float)Math.Atan2(yDiff, xDiff);
 
             return angle;
         }

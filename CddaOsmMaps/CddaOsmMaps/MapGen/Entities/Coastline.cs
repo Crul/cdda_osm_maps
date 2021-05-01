@@ -97,9 +97,7 @@ namespace CddaOsmMaps.MapGen.Entities
         {
             var currentPoint = polygon[idx];
             var prevPoint = polygon[idx + idxSecondPointDelta];
-            var angle = MathExt.ToRadians(
-                Geom.GetAngle(currentPoint, prevPoint) + rotateAngle
-            );
+            var angle = Geom.GetAngle(currentPoint, prevPoint) + rotateAngle;
 
             return new Vector2(
                 (float)(currentPoint.X + SIDE_INDICATOR_WIDTH * Math.Cos(angle)),

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CddaOsmMaps.Crosscutting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -76,5 +77,33 @@ namespace CddaOsmMaps.MapGen.Entities
             { "footway",         3 },
             { "steps",           2 },
         };
+
+        public List<float[]> GetRoadWidths(float pixelsPerMeter)
+            => Polygons
+                .Select(p => GetPolygonWidths(p, Width, pixelsPerMeter))
+                .ToList();
+
+        public List<float[]> GetSidewalkWidths(float pixelsPerMeter)
+            => Polygons
+                .Select(p => GetPolygonWidths(p, SidewalkWidth, pixelsPerMeter))
+                .ToList();
+
+        private static float[] GetPolygonWidths(Polygon polygon, float baseWidth, float pixelsPerMeter)
+        {
+            var widths = new float[polygon.Count - 1];
+            for (var i = 0; i < polygon.Count - 1; i++)
+            {
+                // because CDDA vehicle diagonal movment, diagonal roads need to be wider
+
+                var segment = polygon.Skip(i).Take(2).ToList();
+                var angle = Geom.GetAngle(segment[0], segment[1]);
+                // https://www.wolframalpha.com/input/?i=plot+1%2B+%28%28sqrt%282%29-1%29+%281-cos%284*x%29%29%2F2%29+from+x+%3D+0+to+2*pi
+                var angleFactor = 1f + (float)((Math.Sqrt(2) - 1) * (1 - Math.Cos(4 * angle)) / 2);
+
+                widths[i] = pixelsPerMeter * baseWidth * angleFactor;
+            }
+
+            return widths;
+        }
     }
 }

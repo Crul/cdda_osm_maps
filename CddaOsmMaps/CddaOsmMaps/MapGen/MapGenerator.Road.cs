@@ -298,14 +298,14 @@ namespace CddaOsmMaps.MapGen
             => MapImage.DrawComplexPath(
                 road.Polygons,
                 MapColors.ROAD_COLORS[road.Type],
-                MapProvider.PixelsPerMeter * road.Width
+                road.GetRoadWidths(MapProvider.PixelsPerMeter)
             );
 
         private void GenerateSidewalk(Road road)
             => MapImage.DrawComplexPath(
                 road.Polygons,
                 MapColors.SIDEWALK_COLOR,
-                MapProvider.PixelsPerMeter * road.SidewalkWidth
+                road.GetSidewalkWidths(MapProvider.PixelsPerMeter)
             );
 
         private static Point GetOvermapTile(Vector2 absPos)
