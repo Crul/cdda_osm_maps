@@ -4,6 +4,25 @@
     {
         Default,
         Water100Percent,
-        Water
+        Water,
+
+        RoadNorth,
+        RoadSouth,
+        RoadWest,
+        RoadEast,
+
+        RoadNorthEast,
+        RoadNorthSouth,
+        RoadSouthWest,
+        RoadEastSouth,
+        RoadEastWest,
+        RoadWestNorth,
+
+        RoadNorthEastSouth,
+        RoadNorthEastWest,
+        RoadNorthSouthWest,
+        RoadEastSouthWest,
+
+        RoadNorthEastSouthWest,
     }
 }

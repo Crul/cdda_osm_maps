@@ -14,13 +14,19 @@ namespace CddaOsmMaps.MapGen.Entities
 
         private const float SIDEWALK_WIDTH_FACTOR = 1.5f;
 
-        private readonly string[] ROAD_TYPES_WITH_SIDEWALK = new string[]
+        private static readonly string[] ROAD_TYPES_WITH_SIDEWALK = new string[]
         {
             // https://wiki.openstreetmap.org/wiki/Key:highway
             // TODO <tag k="footway" v="sidewalk"/>
             // TODO <tag k="sidewalk" v="both | right | left | no"/>
             "secondary", "tertiary", "residential",
             "living_street", "road", "rest_area", "service"
+        };
+
+        public static readonly string[] ROAD_TYPES_FOR_OVERMAP = new string[]
+        {
+            "motorway", "trunk", "primary", "secondary", "tertiary",
+            "residential", "living_street"
         };
 
         public Road(List<Polygon> polygons, string type, bool isTunnel, bool isBridge)

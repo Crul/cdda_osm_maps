@@ -36,9 +36,26 @@ namespace CddaOsmMaps.Cdda
         private readonly Dictionary<OvermapTerrainType, string> OVERMAP_TILE_PER_TERRAIN =
             new Dictionary<OvermapTerrainType, string>
             {
-                { OvermapTerrainType.Default,         "field" },
-                { OvermapTerrainType.Water,           "lake_surface" },
-                { OvermapTerrainType.Water100Percent, "lake_surface" },
+                { OvermapTerrainType.Default,                  "field" },
+
+                { OvermapTerrainType.Water,                    "lake_surface" },
+                { OvermapTerrainType.Water100Percent,          "lake_surface" },
+
+                { OvermapTerrainType.RoadNorth,                "road_end_north" },
+                { OvermapTerrainType.RoadSouth,                "road_end_south" },
+                { OvermapTerrainType.RoadWest,                 "road_end_west" },
+                { OvermapTerrainType.RoadEast,                 "road_end_east" },
+                { OvermapTerrainType.RoadNorthEast,            "road_ne" },
+                { OvermapTerrainType.RoadNorthSouth,           "road_ns" },
+                { OvermapTerrainType.RoadSouthWest,            "road_sw" },
+                { OvermapTerrainType.RoadEastSouth,            "road_es" },
+                { OvermapTerrainType.RoadEastWest,             "road_ew" },
+                { OvermapTerrainType.RoadWestNorth,            "road_wn" },
+                { OvermapTerrainType.RoadNorthEastSouth,       "road_nes" },
+                { OvermapTerrainType.RoadNorthEastWest,        "road_new" },
+                { OvermapTerrainType.RoadNorthSouthWest,       "road_nsw" },
+                { OvermapTerrainType.RoadEastSouthWest,        "road_esw" },
+                { OvermapTerrainType.RoadNorthEastSouthWest,   "road_nesw" },
             };
 
         private void WriteOvermapFiles()
