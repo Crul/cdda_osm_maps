@@ -13,7 +13,8 @@ namespace CddaOsmMaps.MapGen
     internal partial class MapGenerator : IMapGenerator
     {
         private readonly IMapProvider MapProvider;
-        private ImageBuilder Image;
+        private ImageBuilder MapImage;
+        private ImageBuilder OvermapImage;
         private static readonly SKColor EMPTY_AREA_COLOR = Color.White.ToSKColor();
         public static readonly SKColor COASTLINE_BORDER_COLOR = Color.Red.ToSKColor();
         public static readonly SKColor COASTLINE_WATER_SIDE_COLOR = MapColors.DEEP_WATER_COLOR.ToSKColor();
@@ -60,7 +61,8 @@ namespace CddaOsmMaps.MapGen
         public void Generate(string imgPath = "", bool log = false)
         {
             var mapElements = MapProvider.GetMapElements();
-            Image = new ImageBuilder(MapSize, EMPTY_AREA_COLOR, log);
+            MapImage = new ImageBuilder(MapSize, EMPTY_AREA_COLOR, log);
+            OvermapImage = new ImageBuilder(OvermapSize, EMPTY_AREA_COLOR, log);
 
             var coastLines = mapElements.Coastlines.ToList();
             if (coastLines.Count > 0)
@@ -76,14 +78,15 @@ namespace CddaOsmMaps.MapGen
             var roads = mapElements.Roads.ToList();
             GenerateAllRoads(roads);
 
-            mapElements.Buildings.ToList().ForEach(GenerateBuilding);
+            var buildings = mapElements.Buildings.ToList();
+            GenerateBuildings(buildings);
 
             if (!string.IsNullOrEmpty(imgPath))
-                Image.Save(imgPath);
+                MapImage.Save(imgPath);
             else
-                Image.CacheBitmap();
+                MapImage.CacheBitmap();
 
-            Image.DisposeBuldingProperties();
+            MapImage.DisposeBuldingProperties();
         }
 
         public TerrainType GetTerrain(Point tilePos)
@@ -98,7 +101,7 @@ namespace CddaOsmMaps.MapGen
                 Console.WriteLine($"WARNING: pixel not in image: {tilePos}, imgSize: {mapSize}");
                 return TerrainType.Default;
             }
-            var pixelColor = Image.GetPixelColor(tilePos);
+            var pixelColor = MapImage.GetPixelColor(tilePos);
             if (TERRAIN_TYPES_BY_COLOR.TryGetValue(pixelColor, out var terrainType))
                 return terrainType;
 
@@ -123,19 +126,45 @@ namespace CddaOsmMaps.MapGen
         }
 
         private void GenerateLandArea(LandArea landArea)
-            => Image.DrawComplexArea(landArea.Polygons, landArea.FillColor);
+            => MapImage.DrawComplexArea(landArea.Polygons, landArea.FillColor);
 
         private void GenerateRiver(River river)
-            => Image.DrawComplexPath(
+            => MapImage.DrawComplexPath(
                 river.Polygons,
                 MapColors.DEEP_WATER_COLOR,
                 MapProvider.PixelsPerMeter * river.Width
             );
 
+        private void GenerateBuildings(List<Building> buildings)
+        {
+            buildings.ForEach(GenerateBuilding);
+            OvermapImage.CacheBitmap();
+
+            for (int x = 0; x < OvermapSize.Width; x++)
+                for (int y = 0; y < OvermapSize.Height; y++)
+                {
+                    if (Overmap[x, y] != OvermapTerrainType.Default)
+                        continue;
+
+                    var pixelColor = OvermapImage.GetPixelColor(new Point(x, y));
+                    if (pixelColor == MapColors.FLOOR_COLOR)
+                        Overmap[x, y] = OvermapTerrainType.HouseDefault;
+                }
+        }
+
         private void GenerateBuilding(Building building)
         {
-            Image.DrawComplexArea(building.Polygons, MapColors.FLOOR_COLOR);
-            Image.DrawComplexPath(building.Polygons, MapColors.WALL_COLOR, Building.WALL_WIDTH);
+            MapImage.DrawComplexArea(building.Polygons, MapColors.FLOOR_COLOR);
+            MapImage.DrawComplexPath(building.Polygons, MapColors.WALL_COLOR, Building.WALL_WIDTH);
+
+            var overmapPolygons = building
+                .Polygons
+                .Select(polygon =>
+                    new Polygon(polygon.Select(point => point / CddaMap.OVERMAP_TILE_SIZE))
+                )
+                .ToList();
+
+            OvermapImage.DrawComplexArea(overmapPolygons, MapColors.FLOOR_COLOR);
         }
     }
 }

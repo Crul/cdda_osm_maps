@@ -20,21 +20,21 @@ namespace CddaOsmMaps.MapGen
         }
 
         private void GenerateCoastlineLBorder(Coastline coastline, SKColor? color = null)
-            => Image.DrawComplexPath(
+            => MapImage.DrawComplexPath(
                 coastline.Polygons,
                 color ?? COASTLINE_BORDER_COLOR,
                 Coastline.BORDER_WIDTH
             );
 
         private void GenerateCoastlineLSideIndicator(Coastline coastline)
-            => Image.DrawComplexArea(
+            => MapImage.DrawComplexArea(
                 coastline.SideIndicators,
                 COASTLINE_WATER_SIDE_COLOR
             );
 
         private void FillCoastlineDefinedWater()
         {
-            Image.CacheBitmap();
+            MapImage.CacheBitmap();
             var coastlineAreas = new List<CoastlineArea>
                 { null }; // 0 idx is undefined coastline
 
@@ -47,7 +47,7 @@ namespace CddaOsmMaps.MapGen
                         continue;
 
                     var point = new Point(x, y);
-                    var pixelColor = Image.GetPixelSKColor(point);
+                    var pixelColor = MapImage.GetPixelSKColor(point);
                     if (pixelColor != EMPTY_AREA_COLOR)
                         continue;
 
@@ -71,7 +71,7 @@ namespace CddaOsmMaps.MapGen
                     if (cAreaIdx != NO_COASTLINE_AREA_IDX && coastlinieAreaIsWater[cAreaIdx])
                     {
                         // TODO flip vertical with (MapSize.height - y - 1), is there a better way?
-                        Image.DrawPixel(new Vector2(x, MapSize.Height - y - 1), COASTLINE_WATER_SIDE_COLOR);
+                        MapImage.DrawPixel(new Vector2(x, MapSize.Height - y - 1), COASTLINE_WATER_SIDE_COLOR);
 
                         var overmapTile = GetOvermapTile(new Point(x, y));
                         waterTilesInOvermapTile[overmapTile.X, overmapTile.Y]++;
@@ -117,7 +117,7 @@ namespace CddaOsmMaps.MapGen
                         || coastlineAreaIdxByTile[adjPoint.X, adjPoint.Y] > 0
                     ) continue;
 
-                    var adjacentPixelColor = Image.GetPixelSKColor(adjPoint);
+                    var adjacentPixelColor = MapImage.GetPixelSKColor(adjPoint);
                     if (adjacentPixelColor == EMPTY_AREA_COLOR)
                     {
                         coastlineAreaIdxByTile[adjPoint.X, adjPoint.Y] = idx;

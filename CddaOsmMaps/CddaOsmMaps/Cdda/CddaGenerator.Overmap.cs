@@ -41,6 +41,8 @@ namespace CddaOsmMaps.Cdda
                 { OvermapTerrainType.Water,                    "lake_surface" },
                 { OvermapTerrainType.Water100Percent,          "lake_surface" },
 
+                { OvermapTerrainType.HouseDefault,             "house_01_north" },
+
                 { OvermapTerrainType.RoadNorth,                "road_end_north" },
                 { OvermapTerrainType.RoadSouth,                "road_end_south" },
                 { OvermapTerrainType.RoadWest,                 "road_end_west" },

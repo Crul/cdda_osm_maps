@@ -6,6 +6,8 @@
         Water100Percent,
         Water,
 
+        HouseDefault,
+
         RoadNorth,
         RoadSouth,
         RoadWest,

@@ -298,14 +298,14 @@ namespace CddaOsmMaps.MapGen
         }
 
         private void GenerateRoad(Road road)
-            => Image.DrawComplexPath(
+            => MapImage.DrawComplexPath(
                 road.Polygons,
                 MapColors.ROAD_COLORS[road.Type],
                 MapProvider.PixelsPerMeter * road.Width
             );
 
         private void GenerateSidewalk(Road road)
-            => Image.DrawComplexPath(
+            => MapImage.DrawComplexPath(
                 road.Polygons,
                 MapColors.SIDEWALK_COLOR,
                 MapProvider.PixelsPerMeter * road.SidewalkWidth
