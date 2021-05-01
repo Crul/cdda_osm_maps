@@ -1,4 +1,5 @@
-﻿using CddaOsmMaps.MapGen.Entities;
+﻿using CddaOsmMaps.Crosscutting;
+using CddaOsmMaps.MapGen.Entities;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,6 +9,36 @@ namespace CddaOsmMaps.Cdda
 {
     partial class CddaGenerator
     {
+        // TODO set spawn rate via command line arg
+        private const float GLOBAL_MONSTER_SPAWN_RATE = 0.004f; // 0.4%
+        private static readonly List<(string monster, double freqWeight)> MONSTER_SPAWN_CONFIG =
+            new List<(string, double)>
+            {
+                ( "mon_zombie",              30d ),
+                ( "mon_zombie_child",        10d ),
+                ( "mon_zombie_tough",         5d ),
+                ( "mon_zombie_fat",           5d ),
+                ( "mon_zombie_rot",           5d ),
+                ( "mon_zombie_runner",       10d ),
+                ( "mon_feral_human_pipe",     2d ),
+                ( "mon_feral_human_crowbar",  2d ),
+                ( "mon_feral_human_axe",      2d ),
+                ( "mon_zombie_crawler",       5d ),
+                ( "mon_zombie_brainless",     5d ),
+                ( "mon_zombie_dog",           5d ),
+            };
+
+        private static readonly double TOTAL_MONSTER_SPAWN_FREQ_WEIGHT =
+            MONSTER_SPAWN_CONFIG.Sum(m => m.freqWeight);
+
+        private static readonly List<(string monster, double threshold)> MONSTER_SPAWN_PROBABILTY =
+            MONSTER_SPAWN_CONFIG
+                .Select(m => (
+                    m.monster,
+                    GLOBAL_MONSTER_SPAWN_RATE * m.freqWeight / TOTAL_MONSTER_SPAWN_FREQ_WEIGHT
+                ))
+                .ToList();
+
         private void SpawnMonster(
             List<object> monsters,
             TerrainType terrainType,
@@ -34,20 +65,37 @@ namespace CddaOsmMaps.Cdda
             if (isPlayerSpawnTile)
                 return;
 
-            if (monsters.Count == 0)
+            var monster = GetRandomMonster();
+            if (!string.IsNullOrEmpty(monster))
                 monsters.Add(
                     new List<object>()
                     {
-                        "mon_zombie_brainless",
-                        1, // count
+                        monster,
+                        1,               // count
                         relPosInSubmapX, // posx
                         relPosInSubmapY, // posy
-                        -1, // faction_id
-                        -1, // mission_id
-                        false, // friendly
-                        "NONE", // name
+                        -1,              // faction_id
+                        -1,              // mission_id
+                        false,           // friendly
+                        "NONE"           // name
                     }
                 );
+        }
+
+        private static string GetRandomMonster()
+        {
+            var randValue = RandomSingleton.Instance.Rnd.NextDouble();
+            var acc = 0d;
+            for (var i = 0; i < MONSTER_SPAWN_PROBABILTY.Count; i++)
+            {
+                var (monster, threshold) = MONSTER_SPAWN_PROBABILTY[i];
+                acc += threshold; // TODO this can be done on initialization
+
+                if (acc > randValue)
+                    return monster;
+            }
+
+            return string.Empty;
         }
     }
 }
