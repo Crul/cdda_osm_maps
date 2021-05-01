@@ -73,8 +73,6 @@ namespace CddaOsmMaps.MapGen
                 .ToList()
                 .ForEach(GenerateLandArea);
 
-            mapElements.Rivers.ToList().ForEach(GenerateRiver);
-
             var roads = mapElements.Roads.ToList();
             GenerateAllRoads(roads);
 
@@ -137,13 +135,6 @@ namespace CddaOsmMaps.MapGen
                 OvermapImage.DrawComplexArea(overmapPolygons, landArea.FillColor);
             }
         }
-
-        private void GenerateRiver(River river)
-            => MapImage.DrawComplexPath(
-                river.Polygons,
-                MapColors.DEEP_WATER_COLOR,
-                MapProvider.PixelsPerMeter * river.Width
-            );
 
         private void OvermapImageToOvermap()
         {

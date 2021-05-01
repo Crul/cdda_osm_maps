@@ -34,7 +34,6 @@ namespace CddaOsmMaps.Osm
         };
         private const string RELATION_INNER_ROLE = "inner";
         private const string TAG_WATER_ATTR_KEY = "water";
-        private const string TAG_WATERWAY_ATTR_KEY = "waterway";
         private const string TAG_NATURAL_ATTR_KEY = "natural";
         private const string TAG_COASTLINE_ATTR_VALUE = "coastline";
         // https://wiki.openstreetmap.org/wiki/Key:natural
@@ -110,7 +109,6 @@ namespace CddaOsmMaps.Osm
                 Coastlines = GetCoastlines(source),
                 LandAreas = GetWaterAreas(source) // water first 
                     .Concat(GetAreas(source)),    // to prioritize land
-                Rivers = GetRivers(source),
                 Roads = GetRoads(source),
                 Buildings = GetBuildings(source)
             };
@@ -142,13 +140,6 @@ namespace CddaOsmMaps.Osm
                 .Select(data => new LandArea(
                     data.polygons,
                     data.tags[TAG_NATURAL_ATTR_KEY]
-                ));
-
-        private IEnumerable<River> GetRivers(List<ICompleteOsmGeo> ways)
-            => ProcessData(ways, way => way.Tags?.ContainsKey(TAG_WATERWAY_ATTR_KEY) ?? false)
-                .Select(data => new River(
-                    data.polygons,
-                    data.tags[TAG_WATERWAY_ATTR_KEY]
                 ));
 
         private IEnumerable<Road> GetRoads(List<ICompleteOsmGeo> ways)
