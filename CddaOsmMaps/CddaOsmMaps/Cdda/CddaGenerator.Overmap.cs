@@ -115,19 +115,21 @@ namespace CddaOsmMaps.Cdda
                     - topLeftOvermapTile;
 
             var terrain = new List<string>();
-            foreach (var relOvermapTileX in EnumExt.Range(CddaMap.OVERMAP_REGION_SIZE_IN_OVERMAP_TILES))
-                foreach (var relOvermapTileY in EnumExt.Range(CddaMap.OVERMAP_REGION_SIZE_IN_OVERMAP_TILES))
+            // reversed x <-> y loops
+            foreach (var relOvermapTileY in EnumExt.Range(CddaMap.OVERMAP_REGION_SIZE_IN_OVERMAP_TILES))
+                foreach (var relOvermapTileX in EnumExt.Range(CddaMap.OVERMAP_REGION_SIZE_IN_OVERMAP_TILES))
                 {
                     var absOvermapTile = new Point(
-                        toAbsOvermapTile(
-                            relOvermapTileX,
-                            overmapRegion.X,
-                            MapTopLeftCoords.OvermapTile.X
-                        ),
+                        // reversed x <-> y
                         toAbsOvermapTile(
                             relOvermapTileY,
                             overmapRegion.Y,
                             MapTopLeftCoords.OvermapTile.Y
+                        ),
+                        toAbsOvermapTile(
+                            relOvermapTileX,
+                            overmapRegion.X,
+                            MapTopLeftCoords.OvermapTile.X
                         )
                     );
 
