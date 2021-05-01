@@ -44,6 +44,8 @@ namespace CddaOsmMaps.Cdda
         private Point MapTopLeftAbsPos;
         private CddaTileCoords MapTopLeftCoords;
         private CddaTileCoords MapBotRghtCoords;
+        private CddaPlayerCoords PlayerSpawnCoords;
+        private CddaTileCoords PlayerSpawnTileCoords;
 
         public CddaGenerator(
             IMapGenerator mapGen,
@@ -66,8 +68,8 @@ namespace CddaOsmMaps.Cdda
             WriteOvermapFiles();
             WriteMapMemory();
 
-            var playerSpawnCoord = GetSpawnCoords(spawnAbsPos);
-            WriteMainSave(playerSpawnCoord);
+            SetSpawnCoords(spawnAbsPos);
+            WriteMainSave();
             WriteSegments();
         }
 
@@ -129,7 +131,7 @@ namespace CddaOsmMaps.Cdda
             ));
         }
 
-        private CddaPlayerCoords GetSpawnCoords(Point? spawnAbsPos)
+        private void SetSpawnCoords(Point? spawnAbsPos)
         {
             if (!spawnAbsPos.HasValue)
                 spawnAbsPos = new Point(
@@ -137,9 +139,9 @@ namespace CddaOsmMaps.Cdda
                     MapGen.MapSize.Height / 2
                 );
 
-            return new CddaPlayerCoords(
-                GetAbsPosFromRelMapPos(spawnAbsPos.Value)
-            );
+            var absPos = GetAbsPosFromRelMapPos(spawnAbsPos.Value);
+            PlayerSpawnCoords = new CddaPlayerCoords(absPos);
+            PlayerSpawnTileCoords = new CddaTileCoords(absPos);
         }
 
         private string GetSaveId()
@@ -172,7 +174,7 @@ namespace CddaOsmMaps.Cdda
             );
         }
 
-        private void WriteMainSave(CddaPlayerCoords playerSpawnCoord)
+        private void WriteMainSave()
         {
             var mainSaveFilepath = Path
                 .Combine(SavePath, $"{SaveId}{MAIN_SAVE_FILE_EXT}");
@@ -182,12 +184,12 @@ namespace CddaOsmMaps.Cdda
             mainSaveData[ACTIVE_MONSTERS_KEY] = new JArray();
             mainSaveData[STAIR_MONSTERS_KEY] = new JArray();
 
-            mainSaveData[OVERTILE_REGION_X_KEY] = playerSpawnCoord.OvermapRegion.X;
-            mainSaveData[OVERTILE_REGION_Y_KEY] = playerSpawnCoord.OvermapRegion.Y;
-            mainSaveData[LEVX_KEY] = playerSpawnCoord.SavegameLev.X;
-            mainSaveData[LEVY_KEY] = playerSpawnCoord.SavegameLev.Y;
-            mainSaveData[PLAYER_KEY][PLAYER_POSX_KEY] = playerSpawnCoord.SavegamePos.X;
-            mainSaveData[PLAYER_KEY][PLAYER_POSY_KEY] = playerSpawnCoord.SavegamePos.Y;
+            mainSaveData[OVERTILE_REGION_X_KEY] = PlayerSpawnCoords.OvermapRegion.X;
+            mainSaveData[OVERTILE_REGION_Y_KEY] = PlayerSpawnCoords.OvermapRegion.Y;
+            mainSaveData[LEVX_KEY] = PlayerSpawnCoords.SavegameLev.X;
+            mainSaveData[LEVY_KEY] = PlayerSpawnCoords.SavegameLev.Y;
+            mainSaveData[PLAYER_KEY][PLAYER_POSX_KEY] = PlayerSpawnCoords.SavegamePos.X;
+            mainSaveData[PLAYER_KEY][PLAYER_POSY_KEY] = PlayerSpawnCoords.SavegamePos.Y;
 
             JsonIO.WriteJson<dynamic>(
                 mainSaveFilepath,

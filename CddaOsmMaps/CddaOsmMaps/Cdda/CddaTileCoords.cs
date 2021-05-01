@@ -10,7 +10,6 @@ namespace CddaOsmMaps.Cdda
         public Point3DInt OvermapRegion { get; internal set; }
         public Point3DInt Segment { get; private set; }
         public Point3DInt OvermapTile { get; private set; }
-        public Point3DInt Submap { get; private set; }
         public Point3DInt SubmapIdx { get; private set; }
         public Point3DInt RelPosInSubmap { get; set; }
 

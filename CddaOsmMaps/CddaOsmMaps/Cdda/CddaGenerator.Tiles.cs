@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 
 namespace CddaOsmMaps.Cdda
 {
@@ -22,6 +23,18 @@ namespace CddaOsmMaps.Cdda
                 { TerrainType.Grass,         "t_grass" },
                 { TerrainType.GrassLong,     "t_grass_long" },
                 { TerrainType.Sidewalk,      "t_sidewalk" },
+            };
+
+        private readonly TerrainType[] MONSTER_ALLOWED_TERRAIN_TYPES = new TerrainType[]
+            {
+                TerrainType.Default,
+                TerrainType.Pavement,
+                TerrainType.ConcreteFloor,
+                TerrainType.DirtFloor,
+                TerrainType.HouseFloor,
+                TerrainType.Grass,
+                TerrainType.GrassLong,
+                TerrainType.Sidewalk,
             };
 
         private void WriteSegments()
@@ -139,7 +152,37 @@ namespace CddaOsmMaps.Cdda
                 0
             };
 
-            var terrain = GetSubmapTerrain(overmapTileFile, submapIdx);
+            var terrainTypes = GetSubmapTerrain(overmapTileFile, submapIdx);
+
+            var terrain = new List<string>();
+            var monsters = new List<object>();
+            foreach (var x in EnumExt.Range(CddaMap.SUBMAP_SIZE))
+                foreach (var y in EnumExt.Range(CddaMap.SUBMAP_SIZE))
+                {
+                    var terrainType = terrainTypes[x, y];
+                    terrain.Add(TILE_PER_TERRAIN[terrainType]);
+
+                    var isMonsterAllowed = MONSTER_ALLOWED_TERRAIN_TYPES.Contains(terrainType);
+                    if (!isMonsterAllowed)
+                        continue;
+
+                    var isPlayerSpawnTile = (
+                        // TODO spawn monster in player tile check should take OvermapRegion into account (minor issue)
+                        PlayerSpawnTileCoords.RelPosInSubmap.X == x
+                        && PlayerSpawnTileCoords.RelPosInSubmap.Y == y
+                        && PlayerSpawnTileCoords.OvermapTile.X == overmapTileFile.X
+                        && PlayerSpawnTileCoords.OvermapTile.Y == overmapTileFile.Y
+                        && PlayerSpawnTileCoords.SubmapIdx.X == submapIdx.X
+                        && PlayerSpawnTileCoords.SubmapIdx.Y == submapIdx.Y
+                    );
+
+                    if (isPlayerSpawnTile)
+                        continue;
+
+                    SpawnMonster(monsters, x, y);
+                }
+
+            var simplifiedTerrain = SimplifyTerrain(terrain);
 
             var submap = new
             {
@@ -147,14 +190,14 @@ namespace CddaOsmMaps.Cdda
                 coordinates = submapCoord,
                 turn_last_touched = 1,
                 temperature = 0,
-                terrain,
+                terrain = simplifiedTerrain,
                 radiation = new int[] { 0, 144 },
                 furniture = Array.Empty<object>(),
                 items = Array.Empty<object>(),
                 traps = Array.Empty<object>(),
                 fields = Array.Empty<object>(),
                 cosmetics = Array.Empty<object>(),
-                spawns = Array.Empty<object>(),
+                spawns = monsters,
                 vehicles = Array.Empty<object>(),
                 partial_constructions = Array.Empty<object>()
             };
@@ -162,16 +205,34 @@ namespace CddaOsmMaps.Cdda
             return submap;
         }
 
-        private object[] GetSubmapTerrain(Point overmapTileFile, Point submapIdx)
+        private static void SpawnMonster(List<object> monsters, int x, int y)
         {
-            var terrain = new List<string>();
-            foreach (var submapTileX in EnumExt.Range(CddaMap.SUBMAP_SIZE))
-                foreach (var submapTileY in EnumExt.Range(CddaMap.SUBMAP_SIZE))
+            if (monsters.Count == 0)
+                monsters.Add(
+                    new List<object>()
+                    {
+                        "mon_zombie_brainless",
+                        1, // count
+                        x, // posx
+                        y, // posy
+                        -1, // faction_id
+                        -1, // mission_id
+                        false, // friendly
+                        "NONE", // name
+                    }
+                );
+        }
+
+        private TerrainType[,] GetSubmapTerrain(Point overmapTileFile, Point submapIdx)
+        {
+            var terrain = new TerrainType[CddaMap.SUBMAP_SIZE, CddaMap.SUBMAP_SIZE];
+            foreach (var x in EnumExt.Range(CddaMap.SUBMAP_SIZE))
+                foreach (var y in EnumExt.Range(CddaMap.SUBMAP_SIZE))
                 {
                     var tileAbsPos = GetAbsPos(
                         overmapTileFile,
                         submapIdx,
-                        new Point(submapTileY, submapTileX) // reversed X <-> Y
+                        new Point(y, x) // reversed X <-> Y
                     );
 
                     var pixelPos = new Point(
@@ -179,12 +240,10 @@ namespace CddaOsmMaps.Cdda
                         tileAbsPos.Y - MapTopLeftCoords.Abspos.Y
                     );
 
-                    var tileType = TILE_PER_TERRAIN[MapGen.GetTerrain(pixelPos)];
-
-                    terrain.Add(tileType);
+                    terrain[x, y] = MapGen.GetTerrain(pixelPos);
                 }
 
-            return SimplifyTerrain(terrain);
+            return terrain;
         }
 
         private static object[] SimplifyTerrain(List<string> terrain)
