@@ -56,6 +56,22 @@ namespace CddaOsmMaps.Cdda
                 { OvermapTerrainType.RoadNorthSouthWest,       "road_nsw" },
                 { OvermapTerrainType.RoadEastSouthWest,        "road_esw" },
                 { OvermapTerrainType.RoadNorthEastSouthWest,   "road_nesw" },
+
+                { OvermapTerrainType.ForestTrailNorth,                "forest_trail_end_north" },
+                { OvermapTerrainType.ForestTrailSouth,                "forest_trail_end_south" },
+                { OvermapTerrainType.ForestTrailWest,                 "forest_trail_end_west" },
+                { OvermapTerrainType.ForestTrailEast,                 "forest_trail_end_east" },
+                { OvermapTerrainType.ForestTrailNorthEast,            "forest_trail_ne" },
+                { OvermapTerrainType.ForestTrailNorthSouth,           "forest_trail_ns" },
+                { OvermapTerrainType.ForestTrailSouthWest,            "forest_trail_sw" },
+                { OvermapTerrainType.ForestTrailEastSouth,            "forest_trail_es" },
+                { OvermapTerrainType.ForestTrailEastWest,             "forest_trail_ew" },
+                { OvermapTerrainType.ForestTrailWestNorth,            "forest_trail_wn" },
+                { OvermapTerrainType.ForestTrailNorthEastSouth,       "forest_trail_nes" },
+                { OvermapTerrainType.ForestTrailNorthEastWest,        "forest_trail_new" },
+                { OvermapTerrainType.ForestTrailNorthSouthWest,       "forest_trail_nsw" },
+                { OvermapTerrainType.ForestTrailEastSouthWest,        "forest_trail_esw" },
+                { OvermapTerrainType.ForestTrailNorthEastSouthWest,   "forest_trail_nesw" },
             };
 
         private void WriteOvermapFiles()

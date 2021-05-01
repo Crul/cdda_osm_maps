@@ -38,6 +38,13 @@ namespace CddaOsmMaps.MapGen
                 .ToList()
                 .ForEach(road => GenerateOvermapRoad(overmapRoadsInfo, road));
 
+            var overmapForestTrailsInfo
+                = new OvermapRoad[OvermapSize.Width, OvermapSize.Height];
+
+            roads.Where(r => Road.FOREST_TRAIL_TYPES_FOR_OVERMAP.Contains(r.Type))
+                .ToList()
+                .ForEach(road => GenerateOvermapRoad(overmapForestTrailsInfo, road));
+
             for (int x = 0; x < OvermapSize.Width; x++)
                 for (int y = 0; y < OvermapSize.Height; y++)
                 {
@@ -45,10 +52,18 @@ namespace CddaOsmMaps.MapGen
                         continue;
 
                     var roadTerrainType = overmapRoadsInfo[x, y]?
-                        .GetOvermapTerrainType();
+                        .GetOvermapRoadTerrainType();
 
                     if (roadTerrainType.HasValue)
                         Overmap[x, y] = roadTerrainType.Value;
+                    else
+                    {
+                        var foresTrailTerrainType = overmapForestTrailsInfo[x, y]?
+                            .GetOvermapForestTrailTerrainType();
+
+                        if (foresTrailTerrainType.HasValue)
+                            Overmap[x, y] = foresTrailTerrainType.Value;
+                    }
                 }
         }
 

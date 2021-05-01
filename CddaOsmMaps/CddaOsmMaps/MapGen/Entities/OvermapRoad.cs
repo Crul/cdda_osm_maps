@@ -7,16 +7,8 @@
         public bool HasEast { get; set; }
         public bool HasWest { get; set; }
 
-        public OvermapTerrainType? GetOvermapTerrainType()
-        {
-            var hash = (
-                (HasNorth ? 1 : 0)
-                + (HasSouth ? 2 : 0)
-                + (HasEast ? 4 : 0)
-                + (HasWest ? 8 : 0)
-            );
-
-            return hash switch
+        public OvermapTerrainType? GetOvermapRoadTerrainType()
+            => GetHash() switch
             {
                 0 => null,
                 1 => OvermapTerrainType.RoadNorth,
@@ -36,6 +28,35 @@
                 15 => OvermapTerrainType.RoadNorthEastSouthWest,
                 _ => null,
             };
-        }
+
+        public OvermapTerrainType? GetOvermapForestTrailTerrainType()
+            => GetHash() switch
+            {
+                0 => null,
+                1 => OvermapTerrainType.ForestTrailNorth,
+                2 => OvermapTerrainType.ForestTrailSouth,
+                3 => OvermapTerrainType.ForestTrailNorthSouth,
+                4 => OvermapTerrainType.ForestTrailEast,
+                5 => OvermapTerrainType.ForestTrailNorthEast,
+                6 => OvermapTerrainType.ForestTrailEastSouth,
+                7 => OvermapTerrainType.ForestTrailNorthEastSouth,
+                8 => OvermapTerrainType.ForestTrailWest,
+                9 => OvermapTerrainType.ForestTrailWestNorth,
+                10 => OvermapTerrainType.ForestTrailSouthWest,
+                11 => OvermapTerrainType.ForestTrailNorthSouthWest,
+                12 => OvermapTerrainType.ForestTrailEastWest,
+                13 => OvermapTerrainType.ForestTrailNorthEastWest,
+                14 => OvermapTerrainType.ForestTrailEastSouthWest,
+                15 => OvermapTerrainType.ForestTrailNorthEastSouthWest,
+                _ => null,
+            };
+
+        private int GetHash()
+            => (
+                (HasNorth ? 1 : 0)
+                + (HasSouth ? 2 : 0)
+                + (HasEast ? 4 : 0)
+                + (HasWest ? 8 : 0)
+            );
     }
 }

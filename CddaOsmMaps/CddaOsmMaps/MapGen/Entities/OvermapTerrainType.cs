@@ -24,5 +24,24 @@
         RoadEastSouthWest,
 
         RoadNorthEastSouthWest,
+
+        ForestTrailNorth,
+        ForestTrailSouth,
+        ForestTrailWest,
+        ForestTrailEast,
+
+        ForestTrailNorthEast,
+        ForestTrailNorthSouth,
+        ForestTrailSouthWest,
+        ForestTrailEastSouth,
+        ForestTrailEastWest,
+        ForestTrailWestNorth,
+
+        ForestTrailNorthEastSouth,
+        ForestTrailNorthEastWest,
+        ForestTrailNorthSouthWest,
+        ForestTrailEastSouthWest,
+
+        ForestTrailNorthEastSouthWest,
     }
 }

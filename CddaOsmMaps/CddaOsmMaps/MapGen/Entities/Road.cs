@@ -23,10 +23,17 @@ namespace CddaOsmMaps.MapGen.Entities
             "living_street", "road", "rest_area", "service"
         };
 
+        // TODO check all ROAD_TYPES_FOR_OVERMAP have MapColors.ROAD_COLORS == PAVEMENT_COLOR
         public static readonly string[] ROAD_TYPES_FOR_OVERMAP = new string[]
         {
             "motorway", "trunk", "primary", "secondary", "tertiary",
             "residential", "living_street"
+        };
+
+        // TODO check all FOREST_TRAIL_TYPES_FOR_OVERMAP have MapColors.ROAD_COLORS == DIRT_FLOOR_COLOR
+        public static readonly string[] FOREST_TRAIL_TYPES_FOR_OVERMAP = new string[]
+        {
+            "track", /*"footway", */ "path", "cycleway", "construction"
         };
 
         public Road(List<Polygon> polygons, string type, bool isTunnel, bool isBridge)
