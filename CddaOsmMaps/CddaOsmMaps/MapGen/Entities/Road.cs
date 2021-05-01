@@ -26,7 +26,9 @@ namespace CddaOsmMaps.MapGen.Entities
         // TODO check all ROAD_TYPES_FOR_OVERMAP have MapColors.ROAD_COLORS == PAVEMENT_COLOR
         public static readonly string[] ROAD_TYPES_FOR_OVERMAP = new string[]
         {
-            "motorway", "trunk", "primary", "secondary", "tertiary",
+            "motorway", "motorway_link",
+            "trunk", "trunk_link",
+            "primary", "secondary", "tertiary",
             "residential", "living_street"
         };
 

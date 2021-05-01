@@ -48,9 +48,6 @@ namespace CddaOsmMaps.MapGen
             for (int x = 0; x < OvermapSize.Width; x++)
                 for (int y = 0; y < OvermapSize.Height; y++)
                 {
-                    if (Overmap[x, y] != OvermapTerrainType.Default)
-                        continue;
-
                     var roadTerrainType = overmapRoadsInfo[x, y]?
                         .GetOvermapRoadTerrainType();
 
