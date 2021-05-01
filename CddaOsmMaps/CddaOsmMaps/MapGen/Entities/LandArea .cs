@@ -7,6 +7,7 @@ namespace CddaOsmMaps.MapGen.Entities
     {
         public Color FillColor { get; private set; }
         public bool IsVisible { get; private set; }
+        public bool IsWater { get => FillColor == MapColors.DEEP_WATER_COLOR; }
 
         public LandArea(List<Polygon> polygons, string type)
             : base(polygons, type)

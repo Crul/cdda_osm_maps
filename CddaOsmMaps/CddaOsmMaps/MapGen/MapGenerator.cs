@@ -81,6 +81,8 @@ namespace CddaOsmMaps.MapGen
             var buildings = mapElements.Buildings.ToList();
             GenerateBuildings(buildings);
 
+            OvermapImageToOvermap();
+
             if (!string.IsNullOrEmpty(imgPath))
                 MapImage.Save(imgPath);
             else
@@ -126,7 +128,15 @@ namespace CddaOsmMaps.MapGen
         }
 
         private void GenerateLandArea(LandArea landArea)
-            => MapImage.DrawComplexArea(landArea.Polygons, landArea.FillColor);
+        {
+            MapImage.DrawComplexArea(landArea.Polygons, landArea.FillColor);
+            if (landArea.IsWater)
+            {
+                var overmapPolygons = ToOvermapPolygons(landArea.Polygons);
+                // TODO water overmap tiles from landareas does not have WAter100% marked to avoid generating map
+                OvermapImage.DrawComplexArea(overmapPolygons, landArea.FillColor);
+            }
+        }
 
         private void GenerateRiver(River river)
             => MapImage.DrawComplexPath(
@@ -134,5 +144,33 @@ namespace CddaOsmMaps.MapGen
                 MapColors.DEEP_WATER_COLOR,
                 MapProvider.PixelsPerMeter * river.Width
             );
+
+        private void OvermapImageToOvermap()
+        {
+            OvermapImage.CacheBitmap();
+
+            for (int x = 0; x < OvermapSize.Width; x++)
+                for (int y = 0; y < OvermapSize.Height; y++)
+                {
+                    if (Overmap[x, y] != OvermapTerrainType.Default)
+                        continue;
+
+                    var pixelColor = OvermapImage.GetPixelColor(new Point(x, y));
+
+                    if (pixelColor == MapColors.FLOOR_COLOR)
+                        Overmap[x, y] = OvermapTerrainType.HouseDefault;
+
+                    else if (pixelColor == MapColors.DEEP_WATER_COLOR)
+                        // TODO water overmap tiles from landareas does not have WAter100% marked to avoid generating map
+                        Overmap[x, y] = OvermapTerrainType.Water;
+                }
+        }
+
+        private static List<Polygon> ToOvermapPolygons(List<Polygon> mapPolygons)
+            => mapPolygons
+                .Select(polygon =>
+                    new Polygon(polygon.Select(point => point / CddaMap.OVERMAP_TILE_SIZE))
+                )
+                .ToList();
     }
 }
