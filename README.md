@@ -2,10 +2,12 @@
 
 WARNING: This is just a quick proof of concept that places only a few elements (water, roads and not much else) in an empty CDDA world, it's far from being useful.
 
+Cataclysm: Dark Days Ahead - <https://github.com/CleverRaven/Cataclysm-DDA/>
+
 ## Workflow
 
 1. Export OSM file from <https://www.openstreetmap.org/export>, <https://export.hotosm.org> or any other source
-2. Create a New World in CDDA. All its content will be removed.
+2. Create a New World in CDDA (all its content will be removed), start a new game in it. SAVE and quit.
 3. Run command line:
 
 ```text
@@ -45,8 +47,7 @@ Options:
 
 Discussion forum posts:
 
-- Reddit: <https://www.reddit.com/r/cataclysmdda/comments/mvij7b>
-- Discourse: <https://discourse.cataclysmdda.org/t/26238>
+- Devlog v0.0.1 [Reddit](https://www.reddit.com/r/cataclysmdda/comments/mvij7b) - [Discourse](https://discourse.cataclysmdda.org/t/26238)
 
 ## Attribution
 
