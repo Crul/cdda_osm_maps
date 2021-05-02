@@ -48,6 +48,7 @@ Options:
 Discussion forum posts:
 
 - Devlog v0.0.1 [Reddit](https://www.reddit.com/r/cataclysmdda/comments/mvij7b) - [Discourse](https://discourse.cataclysmdda.org/t/26238)
+- Devlog v0.0.2 [Reddit](https://www.reddit.com/r/cataclysmdda/comments/n32lj3) - [Discourse](https://discourse.cataclysmdda.org/t/26286)
 
 ## Attribution
 
